@@ -69,6 +69,8 @@ class EarConfig(Config):
     # Adjust down if you use a smaller GPU.
     IMAGES_PER_GPU = 2
 
+    TRAIN_BN = True
+
     # Number of classes (including background)
     NUM_CLASSES = 1 + 1  # Background + ear
 
@@ -79,7 +81,7 @@ class EarConfig(Config):
     DETECTION_MIN_CONFIDENCE = 0.9
 
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 ############################################################
 #  Dataset
@@ -133,7 +135,6 @@ class EarDataset(utils.Dataset):
                     m[x1:x2, y1:y2] = s
                     masks.append(m)
                     i += 1
-                    cv2.imwrite(mask_path[:-4] + '_' + str(i) + '.png', np.reshape(m.astype(np.uint8), (w, h, 1)))
 
                 mask = np.stack(masks, axis=2)
                 with open(mask_path, 'wb+') as file:
