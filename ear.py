@@ -122,14 +122,18 @@ class EarDataset(utils.Dataset):
                     os.makedirs(os.path.dirname(mask_path))
 
                 masks = []
+                i = 0
                 for c in contours:
                     m = np.full((w, h), False)
-                    x1 = min([p[0][0] for p in c if p[0][0] >= 0])
-                    x2 = max([p[0][0] for p in c if p[0][0] >= 0])
-                    y1 = min([p[0][1] for p in c if p[0][1] >= 0])
-                    y2 = max([p[0][1] for p in c if p[0][1] >= 0])
-                    m[x1:x2, y1:y2] = mask[x1:x2, y1:y2, 1] > 0
+                    x1 = min([p[0][1] for p in c if p[0][1] >= 0])
+                    x2 = max([p[0][1] for p in c if p[0][1] >= 0]) + 1
+                    y1 = min([p[0][0] for p in c if p[0][0] >= 0])
+                    y2 = max([p[0][0] for p in c if p[0][0] >= 0]) + 1
+                    s = mask[x1:x2, y1:y2, 1] > 0
+                    m[x1:x2, y1:y2] = s
                     masks.append(m)
+                    i += 1
+                    cv2.imwrite(mask_path[:-4] + '_' + str(i) + '.png', np.reshape(m.astype(np.uint8), (w, h, 1)))
 
                 mask = np.stack(masks, axis=2)
                 with open(mask_path, 'wb+') as file:
