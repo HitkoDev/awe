@@ -35,6 +35,7 @@ from glob import glob
 import cv2
 import numpy as np
 import skimage.draw
+from tensorflow.python.ops.gen_math_ops import floor
 
 from mrcnn import model as modellib
 from mrcnn import utils
@@ -67,7 +68,7 @@ class EarConfig(Config):
 
     # We use a GPU with 12GB memory, which can fit two images.
     # Adjust down if you use a smaller GPU.
-    IMAGES_PER_GPU = 2
+    IMAGES_PER_GPU = 8
 
     TRAIN_BN = True
 
@@ -78,7 +79,7 @@ class EarConfig(Config):
     NUM_CLASSES = 1 + 1  # Background + ear
 
     # Number of training steps per epoch
-    STEPS_PER_EPOCH = 100
+    STEPS_PER_EPOCH = floor(750 / 8)    # total images / batch size
 
     # Skip detections with < 90% confidence
     DETECTION_MIN_CONFIDENCE = 0.9
