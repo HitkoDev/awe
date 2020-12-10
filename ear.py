@@ -71,6 +71,9 @@ class EarConfig(Config):
 
     TRAIN_BN = True
 
+    IMAGE_MIN_DIM = 320
+    IMAGE_MAX_DIM = 512
+
     # Number of classes (including background)
     NUM_CLASSES = 1 + 1  # Background + ear
 
