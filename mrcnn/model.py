@@ -1100,7 +1100,7 @@ def rpn_bbox_loss_graph(config, target_bbox, rpn_match, rpn_bbox):
     target_bbox = batch_pack_graph(target_bbox, batch_counts,
                                    config.IMAGES_PER_GPU)
 
-    loss = giou_loss(target_bbox, rpn_bbox)
+    loss = smooth_l1_loss(target_bbox, rpn_bbox)
 
     loss = K.switch(tf.size(input=loss) > 0, K.mean(loss), tf.constant(0.0))
     return loss
@@ -1167,7 +1167,7 @@ def mrcnn_bbox_loss_graph(target_bbox, target_class_ids, pred_bbox):
 
     # Smooth-L1 Loss
     loss = K.switch(tf.size(input=target_bbox) > 0,
-                    giou_loss(y_true=target_bbox, y_pred=pred_bbox),
+                    smooth_l1_loss(y_true=target_bbox, y_pred=pred_bbox),
                     tf.constant(0.0))
     loss = K.mean(loss)
     return loss
@@ -1266,7 +1266,7 @@ def load_image_gt(dataset, config, image_id, augmentation=None):
         # Make augmenters deterministic to apply similarly to images and masks
         det = augmentation.to_deterministic()
         image = det.augment_image(image)
-        mask = det.augment_image(mask, hooks=imgaug.HooksImages(activator=hook))
+        mask = det.augment_image(mask)
         # Verify that shapes didn't change
         assert image.shape == image_shape, "Augmentation shouldn't change image size"
         assert mask.shape == mask_shape, "Augmentation shouldn't change mask size"
