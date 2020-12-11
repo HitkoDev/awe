@@ -1,0 +1,74 @@
+% ============================================================================================
+% This is a LaTeX template used for the course
+%
+%  I M A G E   B A S E D   B I O M E T R I C S
+%
+% Faculty of Computer and Information Science
+% University of Ljubljana
+% Slovenia, EU
+%
+% You can use this template for whatever reason you like.
+% If you have any questions feel free to contact
+% ziga.emersic@fri.uni-lj.si
+% ============================================================================================
+
+\documentclass[9pt]{IEEEtran}
+
+% basic
+\usepackage[english]{babel}
+\usepackage{graphicx,epstopdf,fancyhdr,amsmath,amsthm,amssymb,url,array,textcomp,svg,listings,hyperref,xcolor,colortbl,float,gensymb,longtable,supertabular,multicol,placeins}
+
+ % `sumniki' in names
+\usepackage[utf8x]{inputenc}
+
+ % search and copy for `sumniki'
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\input{glyphtounicode}
+\pdfgentounicode=1
+
+% tidy figures
+\graphicspath{{./figures/}}
+\DeclareGraphicsExtensions{.pdf,.png,.jpg,.eps}
+
+% correct bad hyphenation here
+\hyphenation{op-tical net-works semi-conduc-tor trig-gs}
+
+% ============================================================================================
+
+\title{\vspace{0ex} %
+% TITLE IN HERE:
+Ear segmentation using Mask R-CNN
+\\ \large{Assignment \#2}\\ \normalsize{Image Based Biometrics 2020/21, Faculty of Computer and Information Science, University of Ljubljana}}
+\author{ %
+% AUTHOR IN HERE:
+Novak Marko
+\vspace{-4.0ex}
+}
+
+% ============================================================================================
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Mask R-CNN is currently one of the top performing framework for object detection and segmentation. This report covers its use for ear segmentation on AWE database~\cite{DBLP:journals/corr/EmersicSP16}.
+\end{abstract}
+
+\section{Introduction}
+
+\section{Methodology}
+AWE dataset comes with bounding boxes and ear masks. For best results with Mask R-CNN, each mask is split according to bounding boxes, so that each mask cntains only a single ear. For faster training, these masks are stored as numpy files on start, and reused on each run. For training and detection, images are scaled to 512px and padded with zeros until square.
+Model has been trained over 30 epochs and 93 steps (number of images in dataset, divided by )
+
+\section{Results}
+
+\section{Conclusion}
+
+Aenean tincidunt sodales ante et egestas. Nam consectetur nunc iaculis tincidunt egestas. Vivamus sagittis mi et vehicula facilisis. Phasellus semper volutpat gravida. Vestibulum vitae neque sed purus pharetra suscipit eget mollis dui. Morbi lobortis justo a lacus feugiat, et finibus eros tristique.
+
+\bibliographystyle{IEEEtran}
+\bibliography{bibliography}
+
+\end{document}
