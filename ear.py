@@ -71,6 +71,7 @@ class EarConfig(Config):
     IMAGES_PER_GPU = 8
 
     TRAIN_BN = True
+    LEARNING_RATE = 0.001
 
     IMAGE_MIN_DIM = 320
     IMAGE_MAX_DIM = 512
@@ -83,6 +84,8 @@ class EarConfig(Config):
 
     # Skip detections with < 90% confidence
     DETECTION_MIN_CONFIDENCE = 0.9
+
+    USE_MINI_MASK = False
 
     # Prioritize mask
     LOSS_WEIGHTS = {

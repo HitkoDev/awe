@@ -5,6 +5,7 @@ cython
 matplotlib
 scikit-image
 tensorflow-gpu
+tensorflow-addons
 keras
 opencv-python
 h5py==2.10.0
