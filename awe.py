@@ -88,16 +88,8 @@ class EarConfig(Config):
 
     USE_MINI_MASK = False
 
-    # Prioritize mask
-    LOSS_WEIGHTS = {
-        "rpn_class_loss": 0.65,
-        "rpn_bbox_loss": 0.85,
-        "mrcnn_class_loss": 0.7,
-        "mrcnn_bbox_loss": 0.9,
-        "mrcnn_mask_loss": 1.0
-    }
 
-# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 ############################################################
 #  Dataset
@@ -248,12 +240,13 @@ def detect_and_color_splash(model, image_path=None, video_path=None):
         r = model.detect([image], verbose=1)[0]
         # Color splash
         splash = color_splash(image, r['masks'])
+        for rg in r['rois']:
+            cv2.rectangle(splash, (rg[1], rg[0]), (rg[3], rg[2]), (0, 255, 0), 1)
         # Save output
         file_name = "splash_{:%Y%m%dT%H%M%S}.png".format(
             datetime.datetime.now())
         skimage.io.imsave(file_name, splash)
     elif video_path:
-        import cv2
 
         # Video capture
         vcapture = cv2.VideoCapture(video_path)
