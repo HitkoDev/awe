@@ -33,6 +33,7 @@ import sys
 from glob import glob
 
 import cv2
+import imgaug.augmenters as iaa
 import numpy as np
 import skimage.draw
 from tensorflow.python.ops.gen_math_ops import floor
@@ -211,7 +212,7 @@ def train(model):
     model.train(dataset_train, dataset_val,
                 learning_rate=config.LEARNING_RATE,
                 epochs=30,
-                layers='heads')
+                layers='heads', augmentation=iaa.Rotate((-25, 25)))
 
 
 def color_splash(image, mask):
