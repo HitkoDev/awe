@@ -212,7 +212,7 @@ def train(model):
     model.train(dataset_train, dataset_val,
                 learning_rate=config.LEARNING_RATE,
                 epochs=30,
-                layers='heads', augmentation=iaa.Rotate((-25, 25)))
+                layers='heads', augmentation=iaa.Sequential([iaa.Rotate((-25, 25)), iaa.Fliplr(0.5)])
 
 
 def color_splash(image, mask):
