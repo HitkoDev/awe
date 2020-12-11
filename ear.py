@@ -79,11 +79,19 @@ class EarConfig(Config):
     NUM_CLASSES = 1 + 1  # Background + ear
 
     # Number of training steps per epoch
-    STEPS_PER_EPOCH = floor(750 / 8)    # total images / batch size
+    STEPS_PER_EPOCH = int(750 // 8)    # total images / batch size
 
     # Skip detections with < 90% confidence
     DETECTION_MIN_CONFIDENCE = 0.9
 
+    # Prioritize mask
+    LOSS_WEIGHTS = {
+        "rpn_class_loss": 0.65,
+        "rpn_bbox_loss": 0.85,
+        "mrcnn_class_loss": 0.7,
+        "mrcnn_bbox_loss": 0.9,
+        "mrcnn_mask_loss": 1.0
+    }
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
