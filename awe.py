@@ -84,7 +84,7 @@ class EarConfig(Config):
     STEPS_PER_EPOCH = 100
 
     # Skip detections with < 90% confidence
-    DETECTION_MIN_CONFIDENCE = 0.9
+    DETECTION_MIN_CONFIDENCE = 0.1
 
     USE_MINI_MASK = False
 
@@ -148,12 +148,21 @@ class EarDataset(utils.Dataset):
                 with open(mask_path, 'wb+') as file:
                     np.save(file, mask)
 
+            bbox = []
+            for c in contours:
+                x1 = min([p[0][1] for p in c if p[0][1] >= 0])
+                x2 = max([p[0][1] for p in c if p[0][1] >= 0]) + 1
+                y1 = min([p[0][0] for p in c if p[0][0] >= 0])
+                y2 = max([p[0][0] for p in c if p[0][0] >= 0]) + 1
+                bbox.append([x1, y1, x2, y2])
+
             self.add_image(
                 "ear",
                 image_id=path.replace(src_dir, '')[1:],
                 path=path,
                 mask=mask_path,
                 objects=len(contours),
+                bbox=np.array(bbox),
                 width=w, height=h
             )
 
@@ -240,6 +249,7 @@ def detect_and_color_splash(model, image_path=None, video_path=None):
         r = model.detect([image], verbose=1)[0]
         # Color splash
         splash = color_splash(image, r['masks'])
+        print(r['scores'])
         for rg in r['rois']:
             cv2.rectangle(splash, (rg[1], rg[0]), (rg[3], rg[2]), (0, 255, 0), 1)
         # Save output
@@ -283,9 +293,81 @@ def detect_and_color_splash(model, image_path=None, video_path=None):
     print("Saved to ", file_name)
 
 
+def overlap(x, y):
+    xx1 = min(x[0], x[2])
+    xx2 = max(x[0], x[2])
+    xy1 = min(x[1], x[3])
+    xy2 = max(x[1], x[3])
+    yx1 = min(y[0], y[2])
+    yx2 = max(y[0], y[2])
+    yy1 = min(y[1], y[3])
+    yy2 = max(y[1], y[3])
+
+    x1 = max(xx1, yx1)
+    x2 = min(xx2, yx2)
+    y1 = max(xy1, yy1)
+    y2 = min(xy2, yy2)
+
+    ai = max(x2 - x1, 0) * max(y2 - y1, 0)
+    ao = (max(xx2, yx2) - min(xx1, yx1)) * (max(xy2, yy2) - min(xy1, yy1))
+    if ao:
+        return ai / ao
+
+    return 0
+
+
+def report(model):
+    """Get the model."""
+    import json
+
+    # Validation dataset
+    dataset_val = EarDataset()
+    dataset_val.load_ear(args.dataset, "test")
+    dataset_val.prepare()
+    model.config.DETECTION_MIN_CONFIDENCE = 0
+    tp = []
+    fp = []
+    fn = []
+    total = 0
+    for image_id in dataset_val.image_ids:
+        image = dataset_val.load_image(image_id)
+        r = model.detect([image])[0]
+        rois = r['rois']
+        scores = r['scores']
+        bbox = dataset_val.image_info[image_id]['bbox']
+        ms = []
+        for bx in bbox:
+            total += 1
+            i = -1
+            m = 0
+            for j in range(len(rois)):
+                m2 = overlap(bx, rois[j])
+                if m2 > m:
+                    m = m2
+                    i = j
+            if i >= 0:
+                ms.append(i)
+                tp.append(scores[i])
+            else:
+                fn.append(0)
+        for j in range(len(scores)):
+            if j not in ms:
+                fp.append(scores[j])
+        print(image_id)
+
+    with open('report.json', 'w+') as json_file:
+        json.dump({
+            'tp': tp,
+            'fp': fp,
+            'fn': fn,
+            'total': total
+        }, json_file)
+
+
 ############################################################
 #  Training
 ############################################################
+
 
 if __name__ == '__main__':
     import argparse
@@ -295,7 +377,7 @@ if __name__ == '__main__':
         description='Train Mask R-CNN to detect ears.')
     parser.add_argument("command",
                         metavar="<command>",
-                        help="'train' or 'splash'")
+                        help="'train', 'splash', or 'report'")
     parser.add_argument('--dataset', required=False,
                         metavar="/path/to/ear/dataset/",
                         help='Directory of the Ear dataset')
@@ -320,6 +402,8 @@ if __name__ == '__main__':
     elif args.command == "splash":
         assert args.image or args.video,\
             "Provide --image or --video to apply color splash"
+    elif args.command == "report":
+        assert args.dataset, "Argument --dataset is required for report"
 
     print("Weights: ", args.weights)
     print("Dataset: ", args.dataset)
@@ -379,6 +463,8 @@ if __name__ == '__main__':
     elif args.command == "splash":
         detect_and_color_splash(model, image_path=args.image,
                                 video_path=args.video)
+    elif args.command == "report":
+        report(model)
     else:
         print("'{}' is not recognized. "
               "Use 'train' or 'splash'".format(args.command))

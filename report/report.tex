@@ -24,6 +24,7 @@
  % search and copy for `sumniki'
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
+\usepackage{numprint}
 \input{glyphtounicode}
 \pdfgentounicode=1
 
@@ -57,10 +58,14 @@ Mask R-CNN is currently one of the top performing framework for object detection
 \end{abstract}
 
 \section{Introduction}
+Mask R-CNN has been developed by researchers at Facebook AI Research as an upgrade to existing Faster R-CNN solution~\cite{DBLP:journals/corr/HeGDG17}. Key improvement in Mask R-CNN is that loss for segmentation masks is calculated in a class-independent way.
+
+This report uses Mask R-CNN implementation by Matterport~\cite{matterport_maskrcnn_2017}.
 
 \section{Methodology}
-AWE dataset comes with bounding boxes and ear masks. For best results with Mask R-CNN, each mask is split according to bounding boxes, so that each mask cntains only a single ear. For faster training, these masks are stored as numpy files on start, and reused on each run. For training and detection, images are scaled to 512px and padded with zeros until square.
-Model has been trained over 30 epochs and 93 steps (number of images in dataset, divided by )
+AWE dataset comes with bounding boxes and ear masks. For best results with Mask R-CNN, each mask is split according to bounding boxes, so that we get an array of multiple masks per image. For faster training, these masks are stored as numpy files on start, and reused on each run. For training and detection, images are scaled to \numprint{512}px and padded with zeros until square.
+
+Model has been trained over \numprint{30} epochs, each with \numprint{100} steps and \numprint{8} images per step. Since images in AWE dataset are mostly well-oriented, training images have been randomly rotated between \numprint{-25} and \numprint{25} degrees, and horizontally filpped in \numprint{50}\% cases.
 
 \section{Results}
 
