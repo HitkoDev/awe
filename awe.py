@@ -357,9 +357,9 @@ def report(model):
 
     with open('report.json', 'w+') as json_file:
         json.dump({
-            'tp': tp,
-            'fp': fp,
-            'fn': fn,
+            'tp': np.array(tp).tolist(),
+            'fp': np.array(fp).tolist(),
+            'fn': np.array(fn).tolist(),
             'total': total
         }, json_file)
 
