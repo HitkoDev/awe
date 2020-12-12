@@ -54,24 +54,33 @@ Novak Marko
 \maketitle
 
 \begin{abstract}
-Mask R-CNN is currently one of the top performing framework for object detection and segmentation. This report covers its use for ear segmentation on AWE database~\cite{DBLP:journals/corr/EmersicSP16}.
+Mask R-CNN is currently one of the top-performing frameworks for object detection and segmentation. This report covers its use for ear segmentation on AWE database~\cite{DBLP:journals/corr/EmersicSP16}.
 \end{abstract}
 
 \section{Introduction}
-Mask R-CNN has been developed by researchers at Facebook AI Research as an upgrade to existing Faster R-CNN solution~\cite{DBLP:journals/corr/HeGDG17}. Key improvement in Mask R-CNN is that loss for segmentation masks is calculated in a class-independent way.
+Mask R-CNN has been developed by researchers at Facebook AI Research as an upgrade to existing Faster R-CNN solution~\cite{DBLP:journals/corr/HeGDG17}. The key improvement in Mask R-CNN is that loss for segmentation masks is calculated in a class-independent way.
 
 This report uses Mask R-CNN implementation by Matterport~\cite{matterport_maskrcnn_2017}.
 
 \section{Methodology}
-AWE dataset comes with bounding boxes and ear masks. For best results with Mask R-CNN, each mask is split according to bounding boxes, so that we get an array of multiple masks per image. For faster training, these masks are stored as numpy files on start, and reused on each run. For training and detection, images are scaled to \numprint{512}px and padded with zeros until square.
+AWE dataset comes with bounding boxes and ear masks. For best results with Mask R-CNN, each mask is split according to bounding boxes, so that we get an array of multiple masks per image. For faster training, these masks are stored as numpy files on start and reused on each run. For training and detection, images are scaled to \numprint{512}px and padded with zeros until square.
 
-Model has been trained over \numprint{30} epochs, each with \numprint{100} steps and \numprint{8} images per step. Since images in AWE dataset are mostly well-oriented, training images have been randomly rotated between \numprint{-25} and \numprint{25} degrees, and horizontally filpped in \numprint{50}\% cases.
+The model has been trained over \numprint{30} epochs, each with \numprint{100} steps and \numprint{8} images per step, and learning rate \numprint{0.001}. Training images from AWE dataset have been randomly rotated between \numprint{-25} and \numprint{25} degrees, and horizontally flipped in \numprint{50}\% cases to increase the sample size for training. To reduce training time, initial weights for the model have been loaded from a model pre-trained on COCO dataset (\texttt{-{}-weights coco}).
 
 \section{Results}
 
+Resulting model has been tested on test images from AWE dataset. While ROC curve~\ref{fig:plot1} appears to be comparable with current R-CNN models used for object detection, I was certainly hoping for a higher true positive rate.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\columnwidth]{plot.png}
+    \caption{ROC curve for the resulting model.}
+    \label{fig:plot1}
+\end{figure}
+
 \section{Conclusion}
 
-Aenean tincidunt sodales ante et egestas. Nam consectetur nunc iaculis tincidunt egestas. Vivamus sagittis mi et vehicula facilisis. Phasellus semper volutpat gravida. Vestibulum vitae neque sed purus pharetra suscipit eget mollis dui. Morbi lobortis justo a lacus feugiat, et finibus eros tristique.
+R-CNN models take significant time to train, which is why I opted to start from a pre-trained model and use a higher learning rate. Based on preliminary tests, this approach would likely provide better results if trained from scratch, on a larger number of steps and with lower learning rate.
 
 \bibliographystyle{IEEEtran}
 \bibliography{bibliography}
