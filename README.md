@@ -6,7 +6,7 @@ The repository includes:
 
 -   Source code of Mask R-CNN built on FPN and ResNet101.
 -   Training code for AWE (`ear.py`)
--   Pretrained model (`awe.h5`)
+-   Pretrained model [awe.h5](https://github.com/HitkoDev/Mask_RCNN/releases/download/model-v1/awe.h5)
 
 # Getting Started
 
