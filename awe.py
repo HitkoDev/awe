@@ -89,7 +89,7 @@ class EarConfig(Config):
     USE_MINI_MASK = False
 
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 ############################################################
 #  Dataset
