@@ -1,7 +1,5 @@
-import enum
 import json
 
-import matplotlib
 import matplotlib.pyplot as plt
 
 with open('report.json', 'r+') as json_file:

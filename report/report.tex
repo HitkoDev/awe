@@ -82,6 +82,17 @@ Resulting model has been tested on test images from AWE dataset. While ROC curve
 
 R-CNN models take significant time to train, which is why I opted to start from a pre-trained model and use a higher learning rate. Based on preliminary tests, this approach would likely provide better results if trained from scratch, on a larger number of steps and with lower learning rate.
 
+\section{Addendum}
+
+After spending additional time and training model starting from COCO dataset weights with learning rate \numprint{0.0001}, \numprint{30} epochs, \numprint{375} steps, and \numprint{8} images per step, the resulting model achieved results as shown in Figure~\ref{fig:plot_a}. Compared to the original model, the second model manages to better score true and false matches.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\columnwidth]{plot_a.png}
+    \caption{ROC curve for the second model.}
+    \label{fig:plot_a}
+\end{figure}
+
 \bibliographystyle{IEEEtran}
 \bibliography{bibliography}
 
