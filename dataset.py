@@ -1,68 +1,119 @@
-from __future__ import generators, division, absolute_import, with_statement, print_function, unicode_literals
+import glob
+import math
+import os
+import random
 
+import cv2
+import imgaug.augmenters as iaa
 import numpy as np
-import matplotlib.pyplot as plt
-from tensorflow.keras.datasets import mnist
 
-class Dataset(object):
-	images_train = np.array([])
-	images_test = np.array([])
-	labels_train = np.array([])
-	labels_test = np.array([])
-	unique_train_label = np.array([])
-	map_train_label_indices = dict()
+augmentation = iaa.Sequential([iaa.Rotate((-170, 170))])
 
-	def _get_siamese_similar_pair(self):
-		label =np.random.choice(self.unique_train_label)
-		l, r = np.random.choice(self.map_train_label_indices[label], 2, replace=False)
-		return l, r, 1
 
-	def _get_siamese_dissimilar_pair(self):
-		label_l, label_r = np.random.choice(self.unique_train_label, 2, replace=False)
-		l = np.random.choice(self.map_train_label_indices[label_l])
-		r = np.random.choice(self.map_train_label_indices[label_r])
-		return l, r, 0
+class AWEDataset(object):
 
-	def _get_siamese_pair(self):
-		if np.random.random() < 0.5:
-			return self._get_siamese_similar_pair()
-		else:
-			return self._get_siamese_dissimilar_pair()
+    def __init__(self, path):
+        super().__init__()
+        images = {}
+        classes = []
+        for d in os.listdir(path):
+            for lr in ['L', 'R']:
+                c = '{}_{}'.format(d, lr)
+                classes.append(c)
+                dir = os.path.join(path, d, lr)
+                for f in glob.glob(dir + '/*.png'):
+                    if c not in images:
+                        images[c] = []
+                    images[c].append({
+                        "subject": d,
+                        "lr": lr,
+                        "src": f,
+                        "mask": f[:-4] + '.npy',
+                        "class": c
+                    })
+        self.images = [images[k] for k in images]
+        self.classes = classes
 
-	def get_siamese_batch(self, n):
-		idxs_left, idxs_right, labels = [], [], []
-		for _ in range(n):
-			l, r, x = self._get_siamese_pair()
-			idxs_left.append(l)
-			idxs_right.append(r)
-			labels.append(x)
-		return self.images_train[idxs_left,:], self.images_train[idxs_right, :], np.expand_dims(labels, axis=1)
+    def get_batch(self, size, image_size):
+        c = size // 6
+        imgs = self.images
+        img = []
+        c_same = 0
+        c_diff = 0
 
-class MNISTDataset(Dataset):
-	def __init__(self):
-		print("===Loading MNIST Dataset===")
-		(self.images_train, self.labels_train), (self.images_test, self.labels_test) = mnist.load_data()
-		self.images_train = np.expand_dims(self.images_train, axis=3) / 255.0
-		self.images_test = np.expand_dims(self.images_test, axis=3) / 255.0
-		self.labels_train = np.expand_dims(self.labels_train, axis=1)
-		self.unique_train_label = np.unique(self.labels_train)
-		self.map_train_label_indices = {label: np.flatnonzero(self.labels_train == label) for label in self.unique_train_label}
-		print("Images train :", self.images_train.shape)
-		print("Labels train :", self.labels_train.shape)
-		print("Images test  :", self.images_test.shape)
-		print("Labels test  :", self.labels_test.shape)
-		print("Unique label :", self.unique_train_label)
-		# print("Map label indices:", self.map_train_label_indices)
-		
-if __name__ == "__main__":
-	# Test if it can load the dataset properly or not. use the train.py to run the training
-	a = MNISTDataset()
-	batch_size = 4
-	ls, rs, xs = a.get_siamese_batch(batch_size)
-	f, axarr = plt.subplots(batch_size, 2)
-	for idx, (l, r, x) in enumerate(zip(ls, rs, xs)):
-		print("Row", idx, "Label:", "similar" if x else "dissimilar")
-		print("max:", np.squeeze(l, axis=2).max())
-		axarr[idx, 0].imshow(np.squeeze(l, axis=2))
-		axarr[idx, 1].imshow(np.squeeze(r, axis=2))
-	plt.show()
+        for i in range(len(imgs)):
+            im2 = imgs[i]
+            if len(im2) > 1:
+                random.shuffle(im2)
+                img.append([
+                    im2[0]['src'],
+                    im2[1]['src'],
+                    1
+                ])
+                c_same += 1
+                if c_same > c:
+                    break
+
+        while c_diff < (c_same * 5) or (c_diff + c_same) % 3 != 0:
+            a = random.randint(0, len(imgs) - 1)
+            b = random.randint(0, len(imgs) - 1)
+            if a != b:
+                img.append([
+                    imgs[a][-1]['src'],
+                    imgs[b][-1]['src'],
+                    0
+                ])
+                c_diff += 1
+
+        random.shuffle(img)
+        img = img[0:size]
+        is_same = [x[2] for x in img]
+        left = [load_img(x[0], image_size) for x in img]
+        right = [load_img(x[1], image_size) for x in img]
+        return np.array(left), np.array(right), np.reshape(np.array(is_same), (-1, 1))
+
+
+def load_img(path, image_size):
+    image = cv2.imread(path)
+    w, h, c = image.shape
+    r = math.ceil((w ** 2 + h ** 2) ** 0.5)
+    pw = math.ceil((r - w) / 2)
+    ph = math.ceil((r - h) / 2)
+    image = np.pad(image, ((pw, pw), (ph, ph), (0, 0)))
+    m = path[:-4] + '.npy'
+    with open(m, 'rb') as file:
+        mask = np.load(file)
+    mask = np.pad(mask, ((pw, pw), (ph, ph)))
+
+    # Augmenters that are safe to apply to masks
+    # Some, such as Affine, have settings that make them unsafe, so always
+    # test your augmentation on masks
+    MASK_AUGMENTERS = ["Sequential", "SomeOf", "OneOf", "Sometimes",
+                       "Fliplr", "Flipud", "CropAndPad",
+                       "Affine", "PiecewiseAffine"]
+
+    def hook(images, augmenter, parents, default):
+        """Determines which augmenters to apply to masks."""
+        return augmenter.__class__.__name__ in MASK_AUGMENTERS
+
+    # Store shapes before augmentation to compare
+    image_shape = image.shape
+    mask_shape = mask.shape
+    # Make augmenters deterministic to apply similarly to images and masks
+    det = augmentation.to_deterministic()
+    image = det.augment_image(image)
+    mask = det.augment_image(mask)
+    # Verify that shapes didn't change
+    assert image.shape == image_shape, "Augmentation shouldn't change image size"
+    assert mask.shape == mask_shape, "Augmentation shouldn't change mask size"
+    horizontal_indicies = np.where(np.any(mask, axis=0))[0]
+    vertical_indicies = np.where(np.any(mask, axis=1))[0]
+    x1, x2 = horizontal_indicies[[0, -1]]
+    y1, y2 = vertical_indicies[[0, -1]]
+    x2 += 1
+    y2 += 1
+    mask_out = image * np.stack([mask, mask, mask], axis=2)
+    out = mask_out[y1:y2, x1:x2]
+    out = cv2.resize(out, dsize=(image_size, image_size))
+    #cv2.imwrite('verify.png', out)
+    return out

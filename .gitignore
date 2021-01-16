@@ -1,7 +1,7 @@
 #My ignore
 *.UBUNTU-PC
 *.pyc
-MNIST_data/*
+AWE_data/*
 .ipynb_checkpoints/*
 .vscode/*
 data/
@@ -96,3 +96,7 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+images/**/awe*
+images/**/AWE*
+images/**/converted*

@@ -1,48 +1,50 @@
-from __future__ import generators, division, absolute_import, with_statement, print_function, unicode_literals
+from __future__ import (absolute_import, division, generators, print_function,
+                        unicode_literals, with_statement)
 
-import tensorflow as tf
-import numpy as np
 import matplotlib.pyplot as plt
-import tensorflow.contrib.slim as slim
+import numpy as np
+import tensorflow as tf
+import tf_slim as slim
 
-flags = tf.app.flags
+flags = tf.compat.v1.app.flags
 FLAGS = flags.FLAGS
 
-def mnist_model(input, reuse=False):
-	with tf.name_scope("model"):
-		with tf.variable_scope("conv1") as scope:
-			net = tf.contrib.layers.conv2d(input, 32, [7, 7], activation_fn=tf.nn.relu, padding='SAME',
-		        weights_initializer=tf.contrib.layers.xavier_initializer_conv2d(),scope=scope,reuse=reuse)
-			net = tf.contrib.layers.max_pool2d(net, [2, 2], padding='SAME')
 
-		with tf.variable_scope("conv2") as scope:
-			net = tf.contrib.layers.conv2d(net, 64, [5, 5], activation_fn=tf.nn.relu, padding='SAME',
-		        weights_initializer=tf.contrib.layers.xavier_initializer_conv2d(),scope=scope,reuse=reuse)
-			net = tf.contrib.layers.max_pool2d(net, [2, 2], padding='SAME')
+def AWE_model(input, reuse=False):
+    with tf.compat.v1.name_scope("model"):
+        with tf.compat.v1.variable_scope("conv1"):
+            net = tf.compat.v1.layers.conv2d(input, 32, [7, 7], activation=tf.nn.relu, padding='SAME',
+                                             kernel_initializer=tf.compat.v1.keras.initializers.VarianceScaling(scale=1.0, mode="fan_avg", distribution="uniform"), reuse=reuse)
+            net = tf.compat.v1.layers.max_pooling2d(net, [2, 2], [1, 1], padding='SAME')
 
-		with tf.variable_scope("conv3") as scope:
-			net = tf.contrib.layers.conv2d(net, 128, [3, 3], activation_fn=tf.nn.relu, padding='SAME',
-		        weights_initializer=tf.contrib.layers.xavier_initializer_conv2d(),scope=scope,reuse=reuse)
-			net = tf.contrib.layers.max_pool2d(net, [2, 2], padding='SAME')
+        with tf.compat.v1.variable_scope("conv2"):
+            net = tf.compat.v1.layers.conv2d(net, 64, [5, 5], activation=tf.nn.relu, padding='SAME',
+                                             kernel_initializer=tf.compat.v1.keras.initializers.VarianceScaling(scale=1.0, mode="fan_avg", distribution="uniform"), reuse=reuse)
+            net = tf.compat.v1.layers.max_pooling2d(net, [2, 2], [1, 1], padding='SAME')
 
-		with tf.variable_scope("conv4") as scope:
-			net = tf.contrib.layers.conv2d(net, 256, [1, 1], activation_fn=tf.nn.relu, padding='SAME',
-		        weights_initializer=tf.contrib.layers.xavier_initializer_conv2d(),scope=scope,reuse=reuse)
-			net = tf.contrib.layers.max_pool2d(net, [2, 2], padding='SAME')
+        with tf.compat.v1.variable_scope("conv3"):
+            net = tf.compat.v1.layers.conv2d(net, 128, [3, 3], activation=tf.nn.relu, padding='SAME',
+                                             kernel_initializer=tf.compat.v1.keras.initializers.VarianceScaling(scale=1.0, mode="fan_avg", distribution="uniform"), reuse=reuse)
+            net = tf.compat.v1.layers.max_pooling2d(net, [2, 2], [1, 1], padding='SAME')
 
-		with tf.variable_scope("conv5") as scope:
-			net = tf.contrib.layers.conv2d(net, 2, [1, 1], activation_fn=None, padding='SAME',
-		        weights_initializer=tf.contrib.layers.xavier_initializer_conv2d(),scope=scope,reuse=reuse)
-			net = tf.contrib.layers.max_pool2d(net, [2, 2], padding='SAME')
+        with tf.compat.v1.variable_scope("conv4"):
+            net = tf.compat.v1.layers.conv2d(net, 256, [1, 1], activation=tf.nn.relu, padding='SAME',
+                                             kernel_initializer=tf.compat.v1.keras.initializers.VarianceScaling(scale=1.0, mode="fan_avg", distribution="uniform"), reuse=reuse)
+            net = tf.compat.v1.layers.max_pooling2d(net, [2, 2], [1, 1], padding='SAME')
 
-		net = tf.contrib.layers.flatten(net)
-	
-	return net
+        with tf.compat.v1.variable_scope("conv5"):
+            net = tf.compat.v1.layers.conv2d(net, 2, [1, 1], activation=None, padding='SAME',
+                                             kernel_initializer=tf.compat.v1.keras.initializers.VarianceScaling(scale=1.0, mode="fan_avg", distribution="uniform"), reuse=reuse)
+            net = tf.compat.v1.layers.max_pooling2d(net, [2, 2], [1, 1], padding='SAME')
+
+        net = tf.compat.v1.layers.flatten(net)
+
+    return net
 
 
 def contrastive_loss(model1, model2, y, margin):
-	with tf.name_scope("contrastive-loss"):
-		distance = tf.sqrt(tf.reduce_sum(tf.pow(model1 - model2, 2), 1, keepdims=True))
-		similarity = y * tf.square(distance)                                           # keep the similar label (1) close to each other
-		dissimilarity = (1 - y) * tf.square(tf.maximum((margin - distance), 0))        # give penalty to dissimilar label if the distance is bigger than margin
-		return tf.reduce_mean(dissimilarity + similarity) / 2
+    with tf.compat.v1.name_scope("contrastive-loss"):
+        distance = tf.sqrt(tf.reduce_sum(input_tensor=tf.pow(model1 - model2, 2), axis=1, keepdims=True))
+        similarity = y * tf.square(distance)                                           # keep the similar label (1) close to each other
+        dissimilarity = (1 - y) * tf.square(tf.maximum((margin - distance), 0))        # give penalty to dissimilar label if the distance is bigger than margin
+        return tf.reduce_mean(input_tensor=dissimilarity + similarity) / 2

@@ -39,7 +39,7 @@ tensorboard --logdir=train.log
 - Cleanup the old code
 
 ## Dimensionality reduction
-The images below shows the final Result on MNIST test dataset. By only using 2 features, we can easily separate the input images.
+The images below shows the final Result on AWE test dataset. By only using 2 features, we can easily separate the input images.
 ![](https://github.com/ardiya/siamesenetwork-tensorflow/raw/master/figure/result.jpg)
 
 The gif below shows some animation until it somehow converges.
