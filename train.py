@@ -10,12 +10,13 @@ import tensorflow as tf
 
 from dataset import AWEDataset
 from model import *
+from inception import inception_v4
 
 flags = tf.compat.v1.app.flags
 FLAGS = flags.FLAGS
 flags.DEFINE_integer('batch_size', 10, 'Batch size')
 flags.DEFINE_integer('train_iter', 2000, 'Total training iter')
-flags.DEFINE_integer('step', 50, 'Save after ... iteration')
+flags.DEFINE_integer('step', 5, 'Save after ... iteration')
 flags.DEFINE_integer('image_size', 224, 'Image size')
 flags.DEFINE_string('data_dir', './images/converted', 'Dataset dir')
 
@@ -27,7 +28,8 @@ if __name__ == "__main__":
     # setup dataset
     train_dataset = AWEDataset(os.path.join(FLAGS.data_dir, 'train'))
     test_dataset = AWEDataset(os.path.join(FLAGS.data_dir, 'test'))
-    model = AWE_model
+    # model = AWE_model
+    model = inception_v4
     placeholder_shape = (None, FLAGS.image_size, FLAGS.image_size, 3)
     print("placeholder_shape", placeholder_shape)
     colors = ['#ff0000', '#ffff00', '#00ff00', '#00ffff', '#0000ff', '#ff00ff', '#990000', '#999900', '#009900', '#009999']
@@ -51,7 +53,7 @@ if __name__ == "__main__":
     # tf.scalar_summary('lr', learning_rate)
     # train_step = tf.train.RMSPropOptimizer(learning_rate).minimize(loss, global_step=global_step)
 
-    train_step = tf.compat.v1.train.AdamOptimizer(0.1).minimize(loss, global_step=global_step)
+    train_step = tf.compat.v1.train.AdamOptimizer(0.0001).minimize(loss, global_step=global_step)
 
     # Start Training
     saver = tf.compat.v1.train.Saver()

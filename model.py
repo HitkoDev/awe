@@ -13,31 +13,32 @@ FLAGS = flags.FLAGS
 def AWE_model(input, reuse=False):
     with tf.compat.v1.name_scope("model"):
         with tf.compat.v1.variable_scope("conv1"):
-            net = tf.compat.v1.layers.conv2d(input, 32, [7, 7], activation=tf.nn.relu, padding='SAME',
+            net = tf.compat.v1.layers.conv2d(input, 32, [4, 4], activation=tf.nn.leaky_relu, padding='SAME',
                                              kernel_initializer=tf.compat.v1.keras.initializers.VarianceScaling(scale=1.0, mode="fan_avg", distribution="uniform"), reuse=reuse)
-            net = tf.compat.v1.layers.max_pooling2d(net, [2, 2], [1, 1], padding='SAME')
+            net = tf.compat.v1.layers.max_pooling2d(net, [3, 3], [1, 1], padding='SAME')
 
         with tf.compat.v1.variable_scope("conv2"):
-            net = tf.compat.v1.layers.conv2d(net, 64, [5, 5], activation=tf.nn.relu, padding='SAME',
+            net = tf.compat.v1.layers.conv2d(net, 32, [4, 4], activation=tf.nn.leaky_relu, padding='SAME',
                                              kernel_initializer=tf.compat.v1.keras.initializers.VarianceScaling(scale=1.0, mode="fan_avg", distribution="uniform"), reuse=reuse)
-            net = tf.compat.v1.layers.max_pooling2d(net, [2, 2], [1, 1], padding='SAME')
+            net = tf.compat.v1.layers.max_pooling2d(net, [3, 3], [1, 1], padding='SAME')
 
         with tf.compat.v1.variable_scope("conv3"):
-            net = tf.compat.v1.layers.conv2d(net, 128, [3, 3], activation=tf.nn.relu, padding='SAME',
+            net = tf.compat.v1.layers.conv2d(net, 64, [3, 3], activation=tf.nn.leaky_relu, padding='SAME',
                                              kernel_initializer=tf.compat.v1.keras.initializers.VarianceScaling(scale=1.0, mode="fan_avg", distribution="uniform"), reuse=reuse)
             net = tf.compat.v1.layers.max_pooling2d(net, [2, 2], [1, 1], padding='SAME')
 
         with tf.compat.v1.variable_scope("conv4"):
-            net = tf.compat.v1.layers.conv2d(net, 256, [1, 1], activation=tf.nn.relu, padding='SAME',
+            net = tf.compat.v1.layers.conv2d(net, 64, [3, 3], activation=tf.nn.leaky_relu, padding='SAME',
                                              kernel_initializer=tf.compat.v1.keras.initializers.VarianceScaling(scale=1.0, mode="fan_avg", distribution="uniform"), reuse=reuse)
             net = tf.compat.v1.layers.max_pooling2d(net, [2, 2], [1, 1], padding='SAME')
 
-        with tf.compat.v1.variable_scope("conv5"):
+        """with tf.compat.v1.variable_scope("conv5"):
             net = tf.compat.v1.layers.conv2d(net, 2, [1, 1], activation=None, padding='SAME',
                                              kernel_initializer=tf.compat.v1.keras.initializers.VarianceScaling(scale=1.0, mode="fan_avg", distribution="uniform"), reuse=reuse)
-            net = tf.compat.v1.layers.max_pooling2d(net, [2, 2], [1, 1], padding='SAME')
+            net = tf.compat.v1.layers.max_pooling2d(net, [2, 2], [1, 1], padding='SAME')"""
 
         net = tf.compat.v1.layers.flatten(net)
+        net = tf.compat.v1.layers.dense(net, 128)
 
     return net
 
