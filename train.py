@@ -19,7 +19,7 @@ flags.DEFINE_integer('step', 50, 'Save after ... iteration')
 flags.DEFINE_integer('image_size', 224, 'Image size')
 flags.DEFINE_string('data_dir', './images/converted', 'Dataset dir')
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 tf.compat.v1.disable_eager_execution()
 
