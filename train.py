@@ -3,14 +3,11 @@ from __future__ import (absolute_import, division, generators, print_function,
 
 import os
 
-import cv2
-import matplotlib.pyplot as plt
-import numpy as np
 import tensorflow as tf
 
 from dataset import AWEDataset
-from model import *
 from inception import inception_v4
+from model import *
 
 flags = tf.compat.v1.app.flags
 FLAGS = flags.FLAGS
@@ -20,7 +17,7 @@ flags.DEFINE_integer('step', 5, 'Save after ... iteration')
 flags.DEFINE_integer('image_size', 224, 'Image size')
 flags.DEFINE_string('data_dir', './images/converted', 'Dataset dir')
 
-# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 tf.compat.v1.disable_eager_execution()
 
@@ -53,7 +50,7 @@ if __name__ == "__main__":
     # tf.scalar_summary('lr', learning_rate)
     # train_step = tf.train.RMSPropOptimizer(learning_rate).minimize(loss, global_step=global_step)
 
-    train_step = tf.compat.v1.train.AdamOptimizer(0.0001).minimize(loss, global_step=global_step)
+    train_step = tf.compat.v1.train.AdamOptimizer(0.1).minimize(loss, global_step=global_step)
 
     # Start Training
     saver = tf.compat.v1.train.Saver()
@@ -61,17 +58,6 @@ if __name__ == "__main__":
     labels_map = {}
     for i in range(len(train_dataset.images)):
         labels_map[train_dataset.images[i][0]['class']] = i
-
-    test_images = []
-    test_labels = []
-    for i in test_dataset.images:
-        for img in i:
-            image = cv2.imread(img['src'])
-            out = cv2.resize(image, dsize=(FLAGS.image_size, FLAGS.image_size))
-            test_images.append(out)
-            test_labels.append(labels_map[img['class']])
-    test_images = np.array(test_images)
-    test_labels = np.array(test_labels)
 
     with tf.compat.v1.Session() as sess:
         sess.run(tf.compat.v1.global_variables_initializer())
@@ -95,17 +81,8 @@ if __name__ == "__main__":
             print("\r#%d - Loss" % i, l)
 
             if (i + 1) % FLAGS.step == 0:
-                # generate test
-                # TODO: create a test file and run per batch
-                feat = sess.run(left_output, feed_dict={left: test_images})
-
-                labels = test_labels
-                # plot result
-                f = plt.figure(figsize=(16, 9))
-                f.set_tight_layout(True)
-                for j in range(10):
-                    plt.plot(feat[labels == j, 0].flatten(), feat[labels == j, 1].flatten(), '.', c=colors[j], alpha=0.8)
-                plt.legend(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'])
-                plt.savefig('img/%d.jpg' % (i + 1))
+                test_left, test_right, test_similarity = test_dataset.get_batch(FLAGS.batch_size, FLAGS.image_size)
+                loss = sess.run(loss, feed_dict={left:test_left, right:test_right, label: batch_similarity})
+                print("\rValidation loss", l)
 
         saver.save(sess, "model/model.ckpt")
