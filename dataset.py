@@ -34,7 +34,7 @@ class AWEDataset(object):
         self.images = [images[k] for k in images]
         self.classes = classes
 
-    def get_batch(self, size, image_size):
+    def get_batch(self, size, image_size, mask=True):
         c = size // 6
         imgs = self.images
         img = []
@@ -68,13 +68,15 @@ class AWEDataset(object):
         random.shuffle(img)
         img = img[0:size]
         is_same = [x[2] for x in img]
-        left = [load_img(x[0], image_size) for x in img]
-        right = [load_img(x[1], image_size) for x in img]
+        left = [load_img(x[0], image_size, mask) for x in img]
+        right = [load_img(x[1], image_size, mask) for x in img]
         return np.array(left), np.array(right), np.reshape(np.array(is_same), (-1, 1))
 
 
-def load_img(path, image_size):
+def load_img(path, image_size, mask=True):
     image = cv2.imread(path)
+    if not mask:
+        return cv2.resize(image, dsize=(image_size, image_size))
     w, h, c = image.shape
     r = math.ceil((w ** 2 + h ** 2) ** 0.5)
     pw = math.ceil((r - w) / 2)

@@ -81,7 +81,7 @@ if __name__ == "__main__":
             print("\r#%d - Loss" % i, l)
 
             if (i + 1) % FLAGS.step == 0:
-                test_left, test_right, test_similarity = test_dataset.get_batch(FLAGS.batch_size, FLAGS.image_size)
+                test_left, test_right, test_similarity = test_dataset.get_batch(FLAGS.batch_size, FLAGS.image_size, False)
                 loss = sess.run(loss, feed_dict={left:test_left, right:test_right, label: batch_similarity})
                 print("\rValidation loss", l)
 
