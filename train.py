@@ -48,7 +48,7 @@ if __name__ == "__main__":
     # tf.scalar_summary('lr', learning_rate)
     # train_step = tf.train.RMSPropOptimizer(learning_rate).minimize(loss, global_step=global_step)
 
-    train_step = tf.compat.v1.train.AdamOptimizer(0.0001).minimize(loss, global_step=global_step)
+    train_step = tf.compat.v1.train.MomentumOptimizer(0.01, 0.99, use_nesterov=True).minimize(loss, global_step=global_step)
 
     # Start Training
     saver = tf.compat.v1.train.Saver()
