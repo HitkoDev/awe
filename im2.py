@@ -39,11 +39,11 @@ def train():
                 p = im['src']
                 if p not in c:
                     c[p] = load_img(im['src'], image_size, aug=False)
-                a.append(c[p])
-                b.append(labels_map[im['class']])
-
-                # a.append(load_img(im['src'], image_size))
+                # a.append(c[p])
                 # b.append(labels_map[im['class']])
+
+                a.append(load_img(im['src'], image_size))
+                b.append(labels_map[im['class']])
             if i == n:
                 yield (np.array(a) / 255., np.array(b))
                 i = 0
