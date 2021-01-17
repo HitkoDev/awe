@@ -30,18 +30,11 @@ def train():
     i = 0
     a = []
     b = []
-    c = {}
     while True:
         random.shuffle(train_dataset.images)
         for x in train_dataset.images:
             random.shuffle(x)
             for im in x:
-                p = im['src']
-                if p not in c:
-                    c[p] = load_img(im['src'], image_size, aug=False)
-                # a.append(c[p])
-                # b.append(labels_map[im['class']])
-
                 a.append(load_img(im['src'], image_size))
                 b.append(labels_map[im['class']])
             if i == n:
