@@ -67,7 +67,7 @@ if __name__ == "__main__":
         # train iter
         i = 0
         while i < FLAGS.train_iter:
-            eps = train_dataset.get_epoch(FLAGS.batch_size, FLAGS.image_size)
+            eps = train_dataset.get_epoch(FLAGS.batch_size, FLAGS.image_size, 150)
             for ep in eps:
                 batch_left, batch_right, batch_similarity = ep
 
@@ -78,7 +78,7 @@ if __name__ == "__main__":
                 print("\r#%d - Loss: %.5f" % (i, l))
                 i += 1
 
-            eps = test_dataset.get_epoch(FLAGS.batch_size, FLAGS.image_size, False)
+            eps = test_dataset.get_epoch(FLAGS.batch_size, FLAGS.image_size, 28, False)
             ls = 0
             for ep in eps:
                 test_left, test_right, test_similarity = ep

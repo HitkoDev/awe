@@ -34,7 +34,7 @@ class AWEDataset(object):
         self.images = [images[k] for k in images]
         self.classes = classes
 
-    def get_epoch(self, size, image_size, mask=True):
+    def get_epoch(self, size, image_size, lm, mask=True):
         img1 = []
         img2 = []
 
@@ -43,7 +43,7 @@ class AWEDataset(object):
 
         i = 0
         loop = 0
-        while True:
+        while len(img1) < lm:
             if i >= len(all):
                 i = 0
                 if len(img1) == loop:
@@ -66,7 +66,7 @@ class AWEDataset(object):
             i += 1
 
         loop = 0
-        while True:
+        while len(img2) < lm:
             if i >= len(all):
                 i = 0
                 if len(img2) == loop:
