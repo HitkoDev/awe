@@ -8,7 +8,7 @@ import tensorflow_addons as tfa
 
 from dataset import AWEDataset, load_img
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 image_size = 299
 
