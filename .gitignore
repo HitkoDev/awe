@@ -100,3 +100,4 @@ ENV/
 images/**/awe*
 images/**/AWE*
 images/**/converted*
+model

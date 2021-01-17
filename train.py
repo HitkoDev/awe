@@ -12,7 +12,7 @@ from model import *
 flags = tf.compat.v1.app.flags
 FLAGS = flags.FLAGS
 flags.DEFINE_integer('batch_size', 10, 'Batch size')
-flags.DEFINE_integer('train_iter', 5000, 'Total training iter')
+flags.DEFINE_integer('train_iter', 300, 'Total training iter')
 flags.DEFINE_integer('image_size', 160, 'Image size')
 flags.DEFINE_string('data_dir', './images/converted', 'Dataset dir')
 
