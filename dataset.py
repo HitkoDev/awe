@@ -35,38 +35,55 @@ class AWEDataset(object):
         self.classes = classes
 
     def get_batch(self, size, image_size, mask=True):
-        c = size // 6
+        c = size // 2
         imgs = self.images
         img = []
         c_same = 0
         c_diff = 0
 
-        for i in range(len(imgs)):
-            im2 = imgs[i]
-            if len(im2) > 1:
-                random.shuffle(im2)
-                img.append([
-                    im2[0]['src'],
-                    im2[1]['src'],
-                    1
-                ])
-                c_same += 1
-                if c_same > c:
-                    break
+        all = [x for y in self.images for x in y]
+        random.shuffle(all)
 
-        while c_diff < (c_same * 5) or (c_diff + c_same) % 3 != 0:
-            a = random.randint(0, len(imgs) - 1)
-            b = random.randint(0, len(imgs) - 1)
-            if a != b:
-                img.append([
-                    imgs[a][-1]['src'],
-                    imgs[b][-1]['src'],
-                    0
-                ])
-                c_diff += 1
+        i = 0
+        while len(img) < c:
+            if i >= len(all):
+                i = 0
+
+            im = all[i]
+            if im:
+                for j in range(len(all) - i):
+                    im2 = all[j + i]
+                    if im2 and im2['class'] == im['class']:
+                        all[i] = False
+                        all[j + i] = False
+                        img.append([
+                            im['src'],
+                            im2['src'],
+                            1
+                        ])
+                        break
+            i += 1
+
+        while len(img) < size:
+            if i >= len(all):
+                i = 0
+
+            im = all[i]
+            if im:
+                for j in range(len(all) - i):
+                    im2 = all[j + i]
+                    if im2 and im2['class'] != im['class']:
+                        all[i] = False
+                        all[j + i] = False
+                        img.append([
+                            im['src'],
+                            im2['src'],
+                            0
+                        ])
+                        break
+            i += 1
 
         random.shuffle(img)
-        img = img[0:size]
         is_same = [x[2] for x in img]
         left = [load_img(x[0], image_size, mask) for x in img]
         right = [load_img(x[1], image_size, mask) for x in img]
