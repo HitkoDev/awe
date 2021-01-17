@@ -320,7 +320,7 @@ def inception_v4(inputs, is_training=True,
                     net = slim.dropout(net, dropout_keep_prob, scope='Dropout_1b')
                     net = slim.flatten(net, scope='PreEmbeddingsFlatten')
                     # 1536
-                    net = slim.fully_connected(net, 128, activation_fn=None,
+                    net = slim.fully_connected(net, 32, activation_fn=None,
                                                scope='Embeddings')
         return net
 
