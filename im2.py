@@ -45,7 +45,6 @@ def train():
         for x in train_dataset.images:
             random.shuffle(x)
             for im in x:
-                print(epoch)
                 if epoch < 100:
                     p = im['src']
                     if p not in c:
