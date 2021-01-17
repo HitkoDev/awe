@@ -86,7 +86,7 @@ model.layers.append(tf.keras.layers.Lambda(lambda x: tf.math.l2_normalize(x, axi
 # Compile the model
 lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
     0.0001,
-    decay_steps=10000,
+    decay_steps=15000,
     decay_rate=0.1,
     staircase=False
 )
