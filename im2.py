@@ -71,7 +71,7 @@ model = tf.keras.Sequential([
 
 # Compile the model
 model.compile(
-    optimizer=tf.keras.optimizers.Adam(0.00001),
+    optimizer=tf.keras.optimizers.Adam(0.0001),
     loss=tfa.losses.TripletSemiHardLoss()
 )
 
