@@ -43,9 +43,9 @@ def AWE_model(input, reuse=False):
     return net
 
 
-def contrastive_loss(model1, model2, y, margin):
+def contrastive_loss(model1, model2, y, margin_sim, margin_dis):
     with tf.compat.v1.name_scope("contrastive-loss"):
         distance = tf.sqrt(tf.reduce_sum(input_tensor=tf.pow(model1 - model2, 2), axis=1, keepdims=True))
-        similarity = y * tf.square(distance)                                           # keep the similar label (1) close to each other
-        dissimilarity = (1 - y) * tf.square(tf.maximum((margin - distance), 0))        # give penalty to dissimilar label if the distance is bigger than margin
+        similarity = y * tf.square(tf.maximum((distance - margin_sim), 0))                                           # keep the similar label (1) close to each other
+        dissimilarity = (1 - y) * tf.square(tf.maximum((margin_dis - distance), 0))        # give penalty to dissimilar label if the distance is bigger than margin
         return tf.reduce_mean(input_tensor=dissimilarity + similarity) / 2

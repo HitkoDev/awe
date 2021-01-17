@@ -35,10 +35,9 @@ if __name__ == "__main__":
     with tf.compat.v1.name_scope("similarity"):
         label = tf.compat.v1.placeholder(tf.int32, [None, 1], name='label')  # 1 if same, 0 if different
         label_float = tf.cast(label, dtype=tf.float32)
-    margin = 0.5
     left_output = model(left, reuse=False)
     right_output = model(right, reuse=True)
-    loss = contrastive_loss(left_output, right_output, label_float, margin)
+    loss = contrastive_loss(left_output, right_output, label_float, 0.05, 0.1)
 
     # Setup Optimizer
     global_step = tf.Variable(0, trainable=False)
