@@ -12,7 +12,7 @@ from model import *
 flags = tf.compat.v1.app.flags
 FLAGS = flags.FLAGS
 flags.DEFINE_integer('batch_size', 10, 'Batch size')
-flags.DEFINE_integer('train_iter', 2000, 'Total training iter')
+flags.DEFINE_integer('train_iter', 5000, 'Total training iter')
 flags.DEFINE_integer('image_size', 160, 'Image size')
 flags.DEFINE_string('data_dir', './images/converted', 'Dataset dir')
 
@@ -48,7 +48,7 @@ if __name__ == "__main__":
     # tf.scalar_summary('lr', learning_rate)
     # train_step = tf.train.RMSPropOptimizer(learning_rate).minimize(loss, global_step=global_step)
 
-    train_step = tf.compat.v1.train.AdamOptimizer(0.0001).minimize(loss, global_step=global_step)
+    train_step = tf.compat.v1.train.AdamOptimizer(0.001).minimize(loss, global_step=global_step)
 
     # Start Training
     saver = tf.compat.v1.train.Saver()
