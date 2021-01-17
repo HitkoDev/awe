@@ -42,8 +42,8 @@ def train():
                 a.append(c[p])
                 b.append(labels_map[im['class']])
 
-                a.append(load_img(im['src'], image_size))
-                b.append(labels_map[im['class']])
+                # a.append(load_img(im['src'], image_size))
+                # b.append(labels_map[im['class']])
             if i == n:
                 yield (np.array(a) / 255., np.array(b))
                 i = 0
@@ -75,7 +75,7 @@ model.layers.append(tf.keras.layers.Lambda(lambda x: tf.math.l2_normalize(x, axi
 
 # Compile the model
 model.compile(
-    optimizer=tf.keras.optimizers.Adam(0.0001),
+    optimizer=tf.keras.optimizers.Adam(0.00001),
     loss=tfa.losses.TripletSemiHardLoss()
 )
 
