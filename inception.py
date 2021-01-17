@@ -320,6 +320,7 @@ def inception_v4(inputs, is_training=True,
                     # 1536
                     net = slim.fully_connected(net, 512, activation_fn=None,
                                                scope='Embeddings')
+                    net = (tf.math.tanh(net) + 1) / 2
         return net
 
 
