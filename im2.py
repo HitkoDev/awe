@@ -35,8 +35,8 @@ def train():
                 a.append(c[p])
                 b.append(labels_map[im['class']])
 
-                a.append(load_img(im['src'], 160))
-                b.append(labels_map[im['class']])
+                # a.append(load_img(im['src'], 160))
+                # b.append(labels_map[im['class']])
             if i == n:
                 yield (np.array(a) / 255., np.array(b))
                 i = 0
@@ -70,7 +70,7 @@ model = tf.keras.Sequential([
 
 # Compile the model
 model.compile(
-    optimizer=tf.keras.optimizers.Adam(0.0001),
+    optimizer=tf.keras.optimizers.Adam(0.00001),
     loss=tfa.losses.TripletSemiHardLoss()
 )
 
