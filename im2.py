@@ -12,6 +12,11 @@ from dataset import AWEDataset, load_img
 
 image_size = 299
 
+flags = tf.compat.v1.app.flags
+FLAGS = flags.FLAGS
+flags.DEFINE_integer('epoch', 0, 'Epoch to start from')
+flags.DEFINE_string('model', '', 'Model to restore')
+
 train_dataset = AWEDataset(os.path.join('./images/converted', 'train'))
 test_dataset = AWEDataset(os.path.join('./images/converted', 'test'))
 
@@ -74,6 +79,9 @@ model.compile(
     loss=tfa.losses.TripletSemiHardLoss()
 )
 
+if FLAGS.model:
+    model.load_weights(FLAGS.model)
+
 # Train the network
 history = model.fit(
     train(),
@@ -81,8 +89,9 @@ history = model.fit(
     steps_per_epoch=100,
     validation_data=test(),
     validation_steps=1,
+    initial_epoch=FLAGS.epoch,
     callbacks=[
-        tf.keras.callbacks.ModelCheckpoint(filepath='./model/model.{epoch:02d}-{val_loss:.2f}.h5'),
+        tf.keras.callbacks.ModelCheckpoint(filepath='./model/model.{epoch:02d}-{val_loss:.2f}.h5', save_best_only=True),
         tf.keras.callbacks.TensorBoard(log_dir='./logs')
     ]
 )
