@@ -70,7 +70,7 @@ model.layers.append(tf.keras.layers.Lambda(lambda x: tf.math.l2_normalize(x, axi
 
 # Compile the model
 model.compile(
-    optimizer=tf.keras.optimizers.Adam(0.001),
+    optimizer=tf.keras.optimizers.Adam(0.0001),
     loss=tfa.losses.TripletSemiHardLoss()
 )
 
