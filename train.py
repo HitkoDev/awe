@@ -76,7 +76,7 @@ if __name__ == "__main__":
                                              feed_dict={left: batch_left, right: batch_right, label: batch_similarity})
 
                 writer.add_summary(summary_str, i)
-                print("\r#%d - Loss" % i, l)
+                print("\r#%d - Loss: %.5f" % (i, l))
                 i += 1
 
             eps = test_dataset.get_epoch(FLAGS.batch_size, FLAGS.image_size, False)
@@ -86,6 +86,6 @@ if __name__ == "__main__":
                 l = sess.run(loss, feed_dict={left: test_left, right: test_right, label: test_similarity})
                 ls += l
 
-            print("\rValidation loss", l / len(eps))
+            print("\rValidation loss: %.5f" % (ls / len(eps)))
 
             saver.save(sess, "model/model.ckpt")

@@ -35,7 +35,8 @@ class AWEDataset(object):
         self.classes = classes
 
     def get_epoch(self, size, image_size, mask=True):
-        img = []
+        img1 = []
+        img2 = []
 
         all = [x for y in self.images for x in y]
         random.shuffle(all)
@@ -45,9 +46,9 @@ class AWEDataset(object):
         while True:
             if i >= len(all):
                 i = 0
-                if len(img) == loop:
+                if len(img1) == loop:
                     break
-                loop = len(img)
+                loop = len(img1)
 
             im = all[i]
             if im:
@@ -56,7 +57,7 @@ class AWEDataset(object):
                     if im2 and im2['class'] == im['class']:
                         all[i] = False
                         all[j + i] = False
-                        img.append([
+                        img1.append([
                             im['src'],
                             im2['src'],
                             1
@@ -64,12 +65,13 @@ class AWEDataset(object):
                         break
             i += 1
 
+        loop = 0
         while True:
             if i >= len(all):
                 i = 0
-                if len(img) == loop:
+                if len(img2) == loop:
                     break
-                loop = len(img)
+                loop = len(img2)
 
             im = all[i]
             if im:
@@ -78,7 +80,7 @@ class AWEDataset(object):
                     if im2 and im2['class'] != im['class']:
                         all[i] = False
                         all[j + i + 1] = False
-                        img.append([
+                        img2.append([
                             im['src'],
                             im2['src'],
                             0
@@ -86,11 +88,13 @@ class AWEDataset(object):
                         break
             i += 1
 
-        random.shuffle(img)
-        n = math.ceil(len(img) / size)
+        n = math.ceil((len(img1) + len(img2)) / size)
+        s1 = math.ceil(len(img1) / n)
+        s2 = math.ceil(len(img2) / n)
         ds = []
         for i in range(n):
-            im = img[i * size:min(len(img), (i + 1) * size)]
+            im = img1[i * s1:min(len(img1), (i + 1) * s1)] + img2[i * s2:min(len(img2), (i + 1) * s2)]
+            random.shuffle(im)
             is_same = [x[2] for x in im]
             left = [load_img(x[0], image_size, mask) for x in im]
             right = [load_img(x[1], image_size, mask) for x in im]
