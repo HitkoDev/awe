@@ -34,9 +34,9 @@ def train():
                     c[p] = load_img(im['src'], 160, aug=False)
                 a.append(c[p])
                 b.append(labels_map[im['class']])
-                if random.random() < 0.5:
-                    a.append(load_img(im['src'], 160))
-                    b.append(labels_map[im['class']])
+
+                a.append(load_img(im['src'], 160))
+                b.append(labels_map[im['class']])
             if i == n:
                 yield (np.array(a) / 255., np.array(b))
                 i = 0

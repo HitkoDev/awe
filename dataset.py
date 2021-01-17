@@ -7,7 +7,7 @@ import cv2
 import imgaug.augmenters as iaa
 import numpy as np
 
-augmentation = iaa.Sequential([iaa.Rotate((-45, 45))])
+augmentation = iaa.Sequential([iaa.geometric.ShearX(shear=(-20, 20)), iaa.geometric.ShearY(shear=(-20, 20)),iaa.Rotate((-25, 25))])
 
 
 class AWEDataset(object):
@@ -155,5 +155,6 @@ def load_img(path, image_size, mask=True, aug=True):
     mask = 1.0 * np.stack([mask, mask, mask], axis=2)
     mask = cv2.resize(mask, dsize=(image_size, image_size))
     out = image * mask
-    #cv2.imwrite('verify.png', out)
+    # if aug:
+    #     cv2.imwrite('verify.png', out)
     return out
