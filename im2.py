@@ -26,7 +26,7 @@ for i in range(len(train_dataset.images)):
 
 
 def train():
-    n = 100
+    n = 50
     i = 0
     a = []
     b = []
@@ -86,7 +86,7 @@ if FLAGS.model:
 history = model.fit(
     train(),
     epochs=300,
-    steps_per_epoch=2,
+    steps_per_epoch=4,
     validation_data=test(),
     validation_steps=1,
     initial_epoch=FLAGS.epoch,
