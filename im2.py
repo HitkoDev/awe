@@ -24,17 +24,34 @@ labels_map = {}
 for i in range(len(train_dataset.images)):
     labels_map[train_dataset.images[i][0]['class']] = i
 
+epoch = 0
+
+
+class CustomCallback(tf.keras.callbacks.Callback):
+    def on_epoch_begin(self, ep, logs=None):
+        global epoch
+        epoch = ep
+
 
 def train():
+    global epoch
     n = 2
     i = 0
     a = []
     b = []
+    c = {}
     while True:
         random.shuffle(train_dataset.images)
         for x in train_dataset.images:
             random.shuffle(x)
             for im in x:
+                if epoch < 100:
+                    p = im['src']
+                    if p not in c:
+                        c[p] = load_img(im['src'], image_size, aug=False)
+                    a.append(c[p])
+                    b.append(labels_map[im['class']])
+
                 a.append(load_img(im['src'], image_size))
                 b.append(labels_map[im['class']])
             if i == n:
@@ -67,8 +84,14 @@ model.layers.append(tf.keras.layers.Dense(256, activation=None))
 model.layers.append(tf.keras.layers.Lambda(lambda x: tf.math.l2_normalize(x, axis=1)))
 
 # Compile the model
+lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
+    0.0001,
+    decay_steps=10000,
+    decay_rate=0.1,
+    staircase=False
+)
 model.compile(
-    optimizer=tf.keras.optimizers.Adam(0.00001),
+    optimizer=tf.keras.optimizers.Adam(lr_schedule, amsgrad=True),
     loss=tfa.losses.TripletSemiHardLoss()
 )
 
