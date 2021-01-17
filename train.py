@@ -13,7 +13,6 @@ flags = tf.compat.v1.app.flags
 FLAGS = flags.FLAGS
 flags.DEFINE_integer('batch_size', 10, 'Batch size')
 flags.DEFINE_integer('train_iter', 2000, 'Total training iter')
-flags.DEFINE_integer('step', 5, 'Save after ... iteration')
 flags.DEFINE_integer('image_size', 160, 'Image size')
 flags.DEFINE_string('data_dir', './images/converted', 'Dataset dir')
 
@@ -67,18 +66,26 @@ if __name__ == "__main__":
         writer = tf.compat.v1.summary.FileWriter('train.log', sess.graph)
 
         # train iter
-        for i in range(FLAGS.train_iter):
-            batch_left, batch_right, batch_similarity = train_dataset.get_batch(FLAGS.batch_size, FLAGS.image_size)
+        i = 0
+        while i < FLAGS.train_iter:
+            eps = train_dataset.get_epoch(FLAGS.batch_size, FLAGS.image_size)
+            for ep in eps:
+                batch_left, batch_right, batch_similarity = ep
 
-            _, l, summary_str = sess.run([train_step, loss, merged],
-                                         feed_dict={left: batch_left, right: batch_right, label: batch_similarity})
+                _, l, summary_str = sess.run([train_step, loss, merged],
+                                             feed_dict={left: batch_left, right: batch_right, label: batch_similarity})
 
-            writer.add_summary(summary_str, i)
-            print("\r#%d - Loss" % i, l)
+                writer.add_summary(summary_str, i)
+                print("\r#%d - Loss" % i, l)
+                i += 1
 
-            if (i + 1) % FLAGS.step == 0:
-                test_left, test_right, test_similarity = test_dataset.get_batch(FLAGS.batch_size, FLAGS.image_size, False)
+            eps = test_dataset.get_epoch(FLAGS.batch_size, FLAGS.image_size, False)
+            ls = 0
+            for ep in eps:
+                test_left, test_right, test_similarity = ep
                 l = sess.run(loss, feed_dict={left: test_left, right: test_right, label: test_similarity})
-                print("\rValidation loss", l)
+                ls += l
 
-                saver.save(sess, "model/model.ckpt")
+            print("\rValidation loss", l / len(eps))
+
+            saver.save(sess, "model/model.ckpt")

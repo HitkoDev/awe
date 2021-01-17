@@ -34,25 +34,25 @@ class AWEDataset(object):
         self.images = [images[k] for k in images]
         self.classes = classes
 
-    def get_batch(self, size, image_size, mask=True):
-        c = size // 2
-        imgs = self.images
+    def get_epoch(self, size, image_size, mask=True):
         img = []
-        c_same = 0
-        c_diff = 0
 
         all = [x for y in self.images for x in y]
         random.shuffle(all)
 
         i = 0
-        while len(img) < c:
+        loop = 0
+        while True:
             if i >= len(all):
                 i = 0
+                if len(img) == loop:
+                    break
+                loop = len(img)
 
             im = all[i]
             if im:
-                for j in range(len(all) - i):
-                    im2 = all[j + i]
+                for j in range(len(all) - i - 1):
+                    im2 = all[j + i + 1]
                     if im2 and im2['class'] == im['class']:
                         all[i] = False
                         all[j + i] = False
@@ -64,17 +64,20 @@ class AWEDataset(object):
                         break
             i += 1
 
-        while len(img) < size:
+        while True:
             if i >= len(all):
                 i = 0
+                if len(img) == loop:
+                    break
+                loop = len(img)
 
             im = all[i]
             if im:
-                for j in range(len(all) - i):
-                    im2 = all[j + i]
+                for j in range(len(all) - i - 1):
+                    im2 = all[j + i + 1]
                     if im2 and im2['class'] != im['class']:
                         all[i] = False
-                        all[j + i] = False
+                        all[j + i + 1] = False
                         img.append([
                             im['src'],
                             im2['src'],
@@ -84,10 +87,20 @@ class AWEDataset(object):
             i += 1
 
         random.shuffle(img)
-        is_same = [x[2] for x in img]
-        left = [load_img(x[0], image_size, mask) for x in img]
-        right = [load_img(x[1], image_size, mask) for x in img]
-        return np.array(left), np.array(right), np.reshape(np.array(is_same), (-1, 1))
+        n = math.ceil(len(img) / size)
+        ds = []
+        for i in range(n):
+            im = img[i * size:min(len(img), (i + 1) * size)]
+            is_same = [x[2] for x in im]
+            left = [load_img(x[0], image_size, mask) for x in im]
+            right = [load_img(x[1], image_size, mask) for x in im]
+            ds.append([
+                np.array(left),
+                np.array(right),
+                np.reshape(np.array(is_same), (-1, 1))
+            ])
+
+        return ds
 
 
 def load_img(path, image_size, mask=True):
