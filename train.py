@@ -28,7 +28,6 @@ if __name__ == "__main__":
     model = inception_v4
     placeholder_shape = (None, FLAGS.image_size, FLAGS.image_size, 3)
     print("placeholder_shape", placeholder_shape)
-    colors = ['#ff0000', '#ffff00', '#00ff00', '#00ffff', '#0000ff', '#ff00ff', '#990000', '#999900', '#009900', '#009999']
 
     # Setup network
     left = tf.compat.v1.placeholder(tf.float32, placeholder_shape, name='left')

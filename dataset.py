@@ -137,8 +137,8 @@ def load_img(path, image_size, mask=True):
     mask_shape = mask.shape
     # Make augmenters deterministic to apply similarly to images and masks
     det = augmentation.to_deterministic()
-    image = det.augment_image(image)
-    mask = det.augment_image(mask)
+    # image = det.augment_image(image)
+    # mask = det.augment_image(mask)
     # Verify that shapes didn't change
     assert image.shape == image_shape, "Augmentation shouldn't change image size"
     assert mask.shape == mask_shape, "Augmentation shouldn't change mask size"
