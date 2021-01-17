@@ -45,7 +45,8 @@ def train():
         for x in train_dataset.images:
             random.shuffle(x)
             for im in x:
-                if epoch < 100:
+                # Include original images in the first 1/2 of traing samples
+                if epoch < 150:
                     p = im['src']
                     if p not in c:
                         c[p] = load_img(im['src'], image_size, aug=False)
@@ -88,7 +89,7 @@ lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
     0.0001,
     decay_steps=15000,
     decay_rate=0.1,
-    staircase=False
+    staircase=True
 )
 model.compile(
     optimizer=tf.keras.optimizers.Adam(lr_schedule, amsgrad=True),
