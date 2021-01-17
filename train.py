@@ -68,6 +68,7 @@ if __name__ == "__main__":
         i = 0
         while i < FLAGS.train_iter:
             eps = train_dataset.get_epoch(FLAGS.batch_size, FLAGS.image_size, 150)
+            ls = 0
             for ep in eps:
                 batch_left, batch_right, batch_similarity = ep
 
@@ -75,8 +76,9 @@ if __name__ == "__main__":
                                              feed_dict={left: batch_left, right: batch_right, label: batch_similarity})
 
                 writer.add_summary(summary_str, i)
-                print("\r#%d - Loss: %.5f" % (i, l))
-                i += 1
+                ls += l
+
+            print("\r#%d - Loss: %.5f" % (i, (ls / len(eps))))
 
             eps = test_dataset.get_epoch(FLAGS.batch_size, FLAGS.image_size, 28, False)
             ls = 0
@@ -88,3 +90,4 @@ if __name__ == "__main__":
             print("\rValidation loss: %.5f" % (ls / len(eps)))
 
             saver.save(sess, "model/model.ckpt-%d" % i)
+            i += 1
