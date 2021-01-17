@@ -55,10 +55,6 @@ if __name__ == "__main__":
     # Start Training
     saver = tf.compat.v1.train.Saver()
 
-    labels_map = {}
-    for i in range(len(train_dataset.images)):
-        labels_map[train_dataset.images[i][0]['class']] = i
-
     with tf.compat.v1.Session() as sess:
         sess.run(tf.compat.v1.global_variables_initializer())
 
@@ -82,7 +78,7 @@ if __name__ == "__main__":
 
             if (i + 1) % FLAGS.step == 0:
                 test_left, test_right, test_similarity = test_dataset.get_batch(FLAGS.batch_size, FLAGS.image_size, False)
-                loss = sess.run(loss, feed_dict={left:test_left, right:test_right, label: batch_similarity})
+                loss = sess.run(loss, feed_dict={left: test_left, right: test_right, label: test_similarity})
                 print("\rValidation loss", l)
 
-        saver.save(sess, "model/model.ckpt")
+                saver.save(sess, "model/model.ckpt")
