@@ -27,7 +27,7 @@ for i in range(len(train_dataset.images)):
 epoch = 0
 
 
-class CustomCallback(tf.keras.callbacks.Callback):
+class TrainEpochCallback(tf.keras.callbacks.Callback):
     def on_epoch_begin(self, ep, logs=None):
         global epoch
         epoch = ep
@@ -45,6 +45,7 @@ def train():
         for x in train_dataset.images:
             random.shuffle(x)
             for im in x:
+                print(epoch)
                 if epoch < 100:
                     p = im['src']
                     if p not in c:
@@ -108,6 +109,7 @@ history = model.fit(
     initial_epoch=FLAGS.epoch,
     callbacks=[
         tf.keras.callbacks.ModelCheckpoint(filepath='./model/model.{epoch:02d}-{val_loss:.2f}.h5', save_best_only=True),
-        tf.keras.callbacks.TensorBoard(log_dir='./logs')
+        tf.keras.callbacks.TensorBoard(log_dir='./logs'),
+        TrainEpochCallback()
     ]
 )
