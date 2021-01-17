@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
             if (i + 1) % FLAGS.step == 0:
                 test_left, test_right, test_similarity = test_dataset.get_batch(FLAGS.batch_size, FLAGS.image_size, False)
-                loss, _ = sess.run([loss, merged], feed_dict={left: test_left, right: test_right, label: test_similarity})
+                l = sess.run(loss, feed_dict={left: test_left, right: test_right, label: test_similarity})
                 print("\rValidation loss", l)
 
                 saver.save(sess, "model/model.ckpt")
