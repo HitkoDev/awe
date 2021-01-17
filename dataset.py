@@ -107,7 +107,7 @@ class AWEDataset(object):
         return ds
 
 
-def load_img(path, image_size, mask=True):
+def load_img(path, image_size, mask=True, aug=True):
     image = cv2.imread(path)
     if not mask:
         return cv2.resize(image, dsize=(image_size, image_size))
@@ -137,8 +137,9 @@ def load_img(path, image_size, mask=True):
     mask_shape = mask.shape
     # Make augmenters deterministic to apply similarly to images and masks
     det = augmentation.to_deterministic()
-    image = det.augment_image(image)
-    mask = det.augment_image(mask)
+    if aug:
+        image = det.augment_image(image)
+        mask = det.augment_image(mask)
     # Verify that shapes didn't change
     assert image.shape == image_shape, "Augmentation shouldn't change image size"
     assert mask.shape == mask_shape, "Augmentation shouldn't change mask size"
@@ -148,8 +149,11 @@ def load_img(path, image_size, mask=True):
     y1, y2 = vertical_indicies[[0, -1]]
     x2 += 1
     y2 += 1
-    mask_out = image * np.stack([mask, mask, mask], axis=2)
-    out = mask_out[y1:y2, x1:x2]
-    out = cv2.resize(out, dsize=(image_size, image_size))
+    image = image[y1:y2, x1:x2]
+    image = cv2.resize(image, dsize=(image_size, image_size))
+    mask = mask[y1:y2, x1:x2]
+    mask = 1.0 * np.stack([mask, mask, mask], axis=2)
+    mask = cv2.resize(mask, dsize=(image_size, image_size))
+    out = image * mask
     #cv2.imwrite('verify.png', out)
     return out
