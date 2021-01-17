@@ -14,7 +14,7 @@ FLAGS = flags.FLAGS
 flags.DEFINE_integer('batch_size', 10, 'Batch size')
 flags.DEFINE_integer('train_iter', 2000, 'Total training iter')
 flags.DEFINE_integer('step', 5, 'Save after ... iteration')
-flags.DEFINE_integer('image_size', 224, 'Image size')
+flags.DEFINE_integer('image_size', 160, 'Image size')
 flags.DEFINE_string('data_dir', './images/converted', 'Dataset dir')
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
