@@ -7,7 +7,7 @@ import cv2
 import imgaug.augmenters as iaa
 import numpy as np
 
-augmentation = iaa.Sequential([iaa.Rotate((-170, 170))])
+augmentation = iaa.Sequential([iaa.Rotate((-45, 45))])
 
 
 class AWEDataset(object):

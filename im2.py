@@ -10,12 +10,6 @@ from dataset import AWEDataset, load_img
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
-
-def _normalize_img(img, label):
-    img = tf.cast(img, tf.float32) / 255.
-    return (img, label)
-
-
 train_dataset = AWEDataset(os.path.join('./images/converted', 'train'))
 test_dataset = AWEDataset(os.path.join('./images/converted', 'test'))
 
@@ -23,23 +17,26 @@ labels_map = {}
 for i in range(len(train_dataset.images)):
     labels_map[train_dataset.images[i][0]['class']] = i
 
-# Build your input pipelines
-
 
 def train():
     n = 25
     i = 0
     a = []
     b = []
+    c = {}
     while True:
         random.shuffle(train_dataset.images)
         for x in train_dataset.images:
             random.shuffle(x)
             for im in x:
-                a.append(load_img(im['src'], 160))
+                p = im['src']
+                if p not in c:
+                    c[p] = load_img(im['src'], 160, aug=False)
+                a.append(c[p])
                 b.append(labels_map[im['class']])
-                a.append(load_img(im['src'], 160, True, False))
-                b.append(labels_map[im['class']])
+                if random.random() < 0.5:
+                    a.append(load_img(im['src'], 160))
+                    b.append(labels_map[im['class']])
             if i == n:
                 yield (np.array(a) / 255., np.array(b))
                 i = 0
