@@ -3,7 +3,7 @@ import re
 
 import tensorflow as tf
 
-# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 image_size = 299
 
