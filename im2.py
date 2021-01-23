@@ -80,8 +80,8 @@ model = tf.keras.applications.InceptionResNetV2(
     pooling='max'
 )
 
+model.layers.append(tf.keras.layers.Dropout(0.5))
 model.layers.append(tf.keras.layers.Dense(256, activation=None))
-model.layers.append(tf.keras.layers.Dropout(0.25))
 model.layers.append(tf.keras.layers.Lambda(lambda x: tf.math.l2_normalize(x, axis=1)))
 
 # Compile the model
