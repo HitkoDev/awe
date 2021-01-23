@@ -96,8 +96,8 @@ class AWEDataset(object):
             im = img1[i * s1:min(len(img1), (i + 1) * s1)] + img2[i * s2:min(len(img2), (i + 1) * s2)]
             random.shuffle(im)
             is_same = [x[2] for x in im]
-            left = [load_img(x[0], image_size, mask) for x in im]
-            right = [load_img(x[1], image_size, mask) for x in im]
+            left = [load_img(x[0], image_size, mask) / 255. for x in im]
+            right = [load_img(x[1], image_size, mask) / 255. for x in im]
             ds.append([
                 np.array(left),
                 np.array(right),

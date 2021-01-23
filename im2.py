@@ -4,6 +4,7 @@ import random
 import numpy as np
 import tensorflow as tf
 import tensorflow_addons as tfa
+from tensorflow import keras
 
 from dataset import AWEDataset, load_img
 from model2 import image_size, model
@@ -36,6 +37,9 @@ def train():
     a = []
     b = []
     c = {}
+    while True:
+        k = train_dataset.get_epoch(n, image_size, 150)
+        yield ([k[0], k[1]], k[2])
     while True:
         random.shuffle(train_dataset.images)
         for x in train_dataset.images:
@@ -70,6 +74,16 @@ def test():
         yield (np.array(a) / 255., np.array(b))
 
 
+img1 = tf.keras.Input(shape=(image_size, image_size, 3))
+img2 = tf.keras.Input(shape=(image_size, image_size, 3))
+f1 = model(img1)
+f2 = model(img2)
+diff = tf.keras.backend.sum(tf.keras.backend.square(f1 - f2))
+
+model = tf.keras.Model(inputs=[img1, img2], outputs=diff)
+
+model.save('m2.h5')
+
 # Compile the model
 lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
     0.0001,
@@ -79,7 +93,7 @@ lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
 )
 model.compile(
     optimizer=tf.keras.optimizers.Adam(lr_schedule, amsgrad=True),
-    loss=tfa.losses.TripletSemiHardLoss()
+    loss=tfa.losses.ContrastiveLoss()
 )
 
 if FLAGS.model:
