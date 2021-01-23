@@ -57,15 +57,16 @@ def insert_layer_nonseq(model, layer_regex, insert_layer_factory, position='afte
 
 def dropout_layer_factory():
     return[
-        tf.keras.layers.Dropout(0.5),
-        tf.keras.layers.Dense(256, activation=None),
+        tf.keras.layers.Dropout(0.3),
+        tf.keras.layers.Dense(256, activation=tf.keras.activations.tanh),
         # tf.keras.layers.Dropout(0.3),
-        tf.keras.layers.Lambda(lambda x: tf.math.l2_normalize(x, axis=1))
+        #tf.keras.layers.Lambda(lambda x: tf.math.l2_normalize(x, axis=1))
     ]
 
 
 model = tf.keras.applications.InceptionResNetV2(
     include_top=False,
+    weights="imagenet",
     input_shape=(image_size, image_size, 3),
     pooling='max'
 )
