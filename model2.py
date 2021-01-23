@@ -3,7 +3,7 @@ import re
 
 import tensorflow as tf
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 image_size = 299
 
@@ -65,7 +65,7 @@ def dropout_layer_factory():
         tf.keras.layers.Dropout(0.3),
         # tf.keras.layers.Dense(256, activation=None),
         # tf.keras.layers.Dropout(0.3),
-        # tf.keras.layers.Lambda(lambda x: tf.math.l2_normalize(x, axis=1))
+        tf.keras.layers.Lambda(lambda x: tf.math.l2_normalize(x, axis=1))
     ]
 
 
