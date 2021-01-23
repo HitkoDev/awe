@@ -4,8 +4,6 @@ import tensorflow as tf
 
 from model2 import model
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-
 image_size = 299
 
 flags = tf.compat.v1.app.flags

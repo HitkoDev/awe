@@ -6,11 +6,7 @@ import tensorflow as tf
 import tensorflow_addons as tfa
 
 from dataset import AWEDataset, load_img
-from model2 import model
-
-# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-
-image_size = 299
+from model2 import image_size, model
 
 flags = tf.compat.v1.app.flags
 FLAGS = flags.FLAGS
