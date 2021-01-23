@@ -6,6 +6,7 @@ import tensorflow as tf
 import tensorflow_addons as tfa
 
 from dataset import AWEDataset, load_img
+from model2 import model
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
@@ -72,18 +73,6 @@ def test():
     while True:
         yield (np.array(a) / 255., np.array(b))
 
-
-model = tf.keras.applications.InceptionResNetV2(
-    include_top=False,
-    weights="imagenet",
-    input_shape=(image_size, image_size, 3),
-    pooling='max'
-)
-
-model.layers.append(tf.keras.layers.Dropout(0.3))
-model.layers.append(tf.keras.layers.Dense(256, activation=tf.keras.activations.tanh))
-model.layers.append(tf.keras.layers.Dropout(0.3))
-model.layers.append(tf.keras.layers.Lambda(lambda x: tf.math.l2_normalize(x, axis=1)))
 
 # Compile the model
 lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
