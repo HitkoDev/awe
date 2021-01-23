@@ -48,8 +48,6 @@ def insert_layer_nonseq(model, layer_regex, insert_layer_factory, position='afte
                 x = new_layer(x)
                 if position == 'before':
                     x = layer(x)
-
-            break
         else:
             x = layer(layer_input)
 
@@ -76,4 +74,4 @@ model = tf.keras.applications.InceptionResNetV2(
     pooling='max'
 )
 
-model = insert_layer_nonseq(model, 'conv_7b_ac', dropout_layer_factory)
+model = insert_layer_nonseq(model, 'global_max_pooling2d', dropout_layer_factory)
