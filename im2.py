@@ -67,6 +67,9 @@ def test():
     test_images = [x for y in test_dataset.images for x in y]
     a = []
     b = []
+    while True:
+        k = test_dataset.get_epoch(2, image_size, 28)
+        yield ([k[0], k[1]], k[2])
     for x in test_images:
         a.append(load_img(x['src'], image_size, False))
         b.append(labels_map[x['class']])
