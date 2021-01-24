@@ -32,7 +32,7 @@ class TrainEpochCallback(tf.keras.callbacks.Callback):
 
 def train():
     global epoch
-    n = 40
+    n = 20
     i = 0
     a = []
     b = []
@@ -97,7 +97,7 @@ if FLAGS.model:
 history = model.fit(
     train(),
     epochs=300,
-    steps_per_epoch=5,
+    steps_per_epoch=10,
     validation_data=test(),
     validation_steps=1,
     initial_epoch=FLAGS.epoch,
