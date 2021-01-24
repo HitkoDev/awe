@@ -79,8 +79,8 @@ def test():
 
 img1 = tf.keras.Input(shape=(image_size, image_size, 3))
 img2 = tf.keras.Input(shape=(image_size, image_size, 3))
-f1 = model(img1)
-f2 = model(img2)
+f1 = model(tf.keras.applications.inception_resnet_v2.preprocess_input(img1))
+f2 = model(tf.keras.applications.inception_resnet_v2.preprocess_input(img2))
 diff = tf.keras.backend.sum(tf.keras.backend.square(f1 - f2))
 
 model = tf.keras.Model(inputs=[img1, img2], outputs=diff)
