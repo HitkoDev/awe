@@ -58,10 +58,14 @@ def insert_layer_nonseq(model, layer_regex, insert_layer_factory, position='afte
     return tf.keras.Model(inputs=model.inputs, outputs=x)
 
 
+def activate(x):
+    return tf.keras.backend.tanh(x) * 0.5 + 0.5
+
+
 def dropout_layer_factory():
     return[
         # tf.keras.layers.Dropout(0.3),
-        tf.keras.layers.Dense(256, activation=tf.keras.activations.tanh) / 2 + 0.5,
+        tf.keras.layers.Dense(256, activation=activate),
         # tf.keras.layers.Dropout(0.3),
         tf.keras.layers.Lambda(lambda x: tf.math.l2_normalize(x, axis=1))
     ]
