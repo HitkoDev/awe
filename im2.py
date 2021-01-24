@@ -96,8 +96,10 @@ def train():
         used = set()
         a1 = []
         b1 = []
-        for k in range(n):
-            for el in same:
+        added = True
+        while added:
+            added = False
+            for el in same[:len(same) // 2]:
                 if el[0] not in used and el[1] not in used:
                     used.add(el[0])
                     a1.append(imgs[el[0]][0])
@@ -105,6 +107,7 @@ def train():
                     used.add(el[1])
                     a1.append(imgs[el[1]][0])
                     b1.append(imgs[el[1]][1])
+                    added = True
 
             for el in diff:
                 if el[0] not in used and el[1] not in used:
@@ -115,7 +118,18 @@ def train():
                     a1.append(imgs[el[1]][0])
                     b1.append(imgs[el[1]][1])
 
-        yield (np.array(a1), np.array(b1))
+        a = []
+        b = []
+        c = 0
+        for k in range(len(a1)):
+            a.append(a1[k])
+            b.append(b1[k])
+            if len(a) == 2 * n:
+                yield (np.array(a), np.array(b))
+                a = []
+                b = []
+                c += 1
+        print(c)
 
 
 def test():
