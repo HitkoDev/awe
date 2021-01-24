@@ -107,35 +107,40 @@ def test():
     while True:
         a1 = []
         b1 = []
+        c1 = {}
         for x in range(len(a)):
             a1.append(a[x])
             b1.append(b[x])
-            imgs = [a[x]] + c[b[x]]
-            pred = model.predict(np.array(imgs))
+            imgs = c[b[x]]
+
+            if b[x] not in c1:
+                c1[b[x]] = model.predict(np.array(imgs))
+            pred = c1[b[x]]
+
+            p2 = model.predict(np.array([a[x]]))
             mx = 0
             l = 0
-            for j in range(1, len(pred)):
-                dist = (np.sum((pred[0] - pred[j])**2))**0.5
+            for j in range(len(pred)):
+                dist = (np.sum((p2[0] - pred[j])**2))**0.5
                 if dist > mx:
                     mx = dist
                     l = j
-            if l > 0:
-                a1.append(imgs[j])
-                b1.append(b[x])
+            a1.append(imgs[l])
+            b1.append(b[x])
 
         yield (np.array(a), np.array(b))
 
 
 # Compile the model
 lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
-    0.01,
+    0.1,
     decay_steps=300,
     decay_rate=0.1,
     staircase=False
 )
 model.compile(
     optimizer=tf.keras.optimizers.Adam(lr_schedule, amsgrad=True),
-    loss=tfa.losses.TripletHardLoss(margin=0.2)
+    loss=tfa.losses.TripletSemiHardLoss(margin=0.2)
 )
 
 if FLAGS.model:
