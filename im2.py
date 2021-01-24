@@ -95,18 +95,43 @@ def test():
     a = []
     b = []
     for x in test_images:
-        a.append(load_img(x['src'], image_size, False))
+        a.append(load_img(x['src'], image_size, False, False))
         b.append(labels_map[x['class']])
+    train_images = [x for y in train_dataset.images for x in y]
+    c = {}
+    for x in train_images:
+        cls = labels_map[x['class']]
+        if cls not in c:
+            cls[c] = []
+        c[cls].append(load_img(x['src'], image_size, True, False))
     while True:
+        a1 = []
+        b1 = []
+        for x in range(len(a)):
+            a1.append(a[x])
+            b1.append(b[x])
+            imgs = [a[x]] + c[b[x]]
+            pred = model.predict(np.array(imgs))
+            mx = 0
+            l = 0
+            for j in range(1, len(pred)):
+                dist = (np.sum((pred[0] - pred[j])**2))**0.5
+                if dist > mx:
+                    mx = dist
+                    l = j
+            if l > 0:
+                a1.append(imgs[j])
+                b1.append(b[x])
+
         yield (np.array(a), np.array(b))
 
 
 # Compile the model
 lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
-    0.0001,
-    decay_steps=15000,
+    0.01,
+    decay_steps=300,
     decay_rate=0.1,
-    staircase=True
+    staircase=False
 )
 model.compile(
     optimizer=tf.keras.optimizers.Adam(lr_schedule, amsgrad=True),
