@@ -46,6 +46,7 @@ def train():
     b = []
     c = {}
     while True:
+        imgs = []
         random.shuffle(train_dataset.images)
         for x in train_dataset.images:
             random.shuffle(x)
@@ -64,30 +65,57 @@ def train():
                 lbl.append(labels_map[im['class']])
             # select pairs with greatest distance
             pred = model.predict(np.array(img))
-            m2 = []
-            for i1 in range(len(pred) - 1):
-                for i2 in range(i1 + 1, len(pred)):
-                    dist = (np.sum((pred[i1] - pred[i2])**2))**0.5
-                    m2.append([i1, i2, dist])
-            m2 = sorted(m2, key=lambda a_entry: -a_entry[2])
-            a.append(img[m2[0][0]])
-            b.append(lbl[m2[0][0]])
-            a.append(img[m2[0][1]])
-            b.append(lbl[m2[0][1]])
-            for en in m2[1:]:
-                if en[0] != m2[0][0] and en[1] != m2[0][0] and en[0] != m2[0][1] and en[1] != m2[0][1]:
-                    a.append(img[en[0]])
-                    b.append(lbl[en[0]])
-                    a.append(img[en[1]])
-                    b.append(lbl[en[1]])
-                    break
+            for i in range(len(pred)):
+                imgs.append([
+                    img[i],
+                    lbl[i],
+                    pred[i]
+                ])
 
-            if i == n:
-                yield (np.array(a), np.array(b))
-                i = 0
-                a = []
-                b = []
-            i += 1
+        same = []
+        diff = []
+        for i1 in range(len(imgs) - 1):
+            for i2 in range(i1 + 1, len(imgs)):
+                im1 = imgs[i1]
+                im2 = imgs[i2]
+                dist = np.sum((im1[2] - im2[2])**2)**0.5
+                if im1[1] == im2[2]:
+                    same.append([
+                        i1,
+                        i2,
+                        dist
+                    ])
+                else:
+                    diff.append([
+                        i1,
+                        i2,
+                        dist
+                    ])
+        same = sorted(same, key=lambda a_entry: -a_entry[2])
+        diff = sorted(diff, key=lambda a_entry: -a_entry[2])
+        used = set()
+        a1 = []
+        b1 = []
+        for k in range(n):
+            for el in same:
+                if el[0] not in used and el[1] not in used:
+                    used.add(el[0])
+                    a1.append(imgs[el[0][0]])
+                    b1.append(imgs[el[0][1]])
+                    used.add(el[1])
+                    a1.append(imgs[el[1][0]])
+                    b1.append(imgs[el[1][1]])
+
+            for el in diff:
+                if el[0] not in used and el[1] not in used:
+                    used.add(el[0])
+                    a1.append(imgs[el[0][0]])
+                    b1.append(imgs[el[0][1]])
+                    used.add(el[1])
+                    a1.append(imgs[el[1][0]])
+                    b1.append(imgs[el[1][1]])
+
+        yield (np.array(a), np.array(b))
 
 
 def test():
@@ -97,32 +125,7 @@ def test():
     for x in test_images:
         a.append(load_img(x['src'], image_size, False, False))
         b.append(labels_map[x['class']])
-    train_images = [x for y in train_dataset.images for x in y]
-    c = {}
-    for x in train_images:
-        cls = labels_map[x['class']]
-        if cls not in c:
-            c[cls] = []
-        c[cls].append(load_img(x['src'], image_size, True, False))
     while True:
-        """a1 = []
-        b1 = []
-        for x in range(len(a)):
-            a1.append(a[x])
-            b1.append(b[x])
-            imgs = [a[x]] + c[b[x]]
-            pred = model.predict(np.array(imgs))
-            mx = 0
-            l = 0
-            for j in range(1, len(pred)):
-                dist = (np.sum((pred[0] - pred[j])**2))**0.5
-                if dist > mx:
-                    mx = dist
-                    l = j
-            if l > 0:
-                a1.append(imgs[j])
-                b1.append(b[x])"""
-
         yield (np.array(a), np.array(b))
 
 
