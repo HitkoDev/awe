@@ -58,48 +58,51 @@ def test():
         b = []
         c = []
         i = 0
-        lm = len(imgs2) / 2
+        lm = len(imgs2) // 2
         for t in imgs2:
-            if len(a) < lm:
-                loop = 0
-                while len(b) < len(a):
-                    if i >= len(imgs):
-                        i = 0
-                        if len(a) == loop:
-                            break
-                        loop = len(a)
-                    if imgs[i] and imgs[i]['class'] == t['class']:
-                        a.append(t['src'])
-                        b.append(imgs[i]['src'])
-                        c.append(1.)
-                        imgs[i] = False
+            loop = 0
+            while len(a) < lm:
+                if i >= len(imgs):
+                    i = 0
+                    if len(a) == loop:
                         break
-                    i += 1
-            else:
-                loop = 0
-                while len(b) < len(a):
-                    if i >= len(imgs):
-                        i = 0
-                        if len(a) == loop:
-                            break
-                        loop = len(a)
-                    if imgs[i] and imgs[i]['class'] != t['class']:
-                        a.append(t['src'])
-                        b.append(imgs[i]['src'])
-                        c.append(0.)
-                        imgs[i] = False
-                        break
-                    i += 1
+                    loop = len(a)
+                if imgs[i] and imgs[i]['class'] == t['class']:
+                    a.append(t['src'])
+                    b.append(imgs[i]['src'])
+                    c.append(1.)
+                    imgs[i] = False
+                    break
+                i += 1
 
+            loop = 0
+            while len(a) < len(imgs2):
+                if i >= len(imgs):
+                    i = 0
+                    if len(a) == loop:
+                        break
+                    loop = len(a)
+                if imgs[i] and imgs[i]['class'] != t['class']:
+                    a.append(t['src'])
+                    b.append(imgs[i]['src'])
+                    c.append(0.)
+                    imgs[i] = False
+                    break
+                i += 1
+
+        n = 2
         ds = []
-        is_same = [x for x in c]
-        left = [load_img(x, image_size, False, False) for x in a]
-        right = [load_img(x, image_size, True, False) for x in b]
-        ds.append([
-            np.array(left),
-            np.array(right),
-            np.reshape(np.array(is_same), (-1, 1))
-        ])
+        for i in range(len(a) // n):
+            f = i*n
+            g = (i+1) * n
+            is_same = [x for x in c[f:g]]
+            left = [load_img(x, image_size, False, False) for x in a[f:g]]
+            right = [load_img(x, image_size, True, False) for x in b[f:g]]
+            ds.append([
+                np.array(left),
+                np.array(right),
+                np.reshape(np.array(is_same), (-1, 1))
+            ])
         a = []
         b = []
         c = []
