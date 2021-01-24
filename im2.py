@@ -102,7 +102,7 @@ def test():
     for x in train_images:
         cls = labels_map[x['class']]
         if cls not in c:
-            cls[c] = []
+            c[cls] = []
         c[cls].append(load_img(x['src'], image_size, True, False))
     while True:
         a1 = []
