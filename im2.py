@@ -51,7 +51,7 @@ def train():
     while True:
         dataset = train_dataset
         mask = True
-        if epoch % 20 < 10:
+        if epoch < 150:
             dataset = train1_dataset
             mask = False
         random.shuffle(dataset.images)
@@ -61,7 +61,7 @@ def train():
             lbl = []
             for im in x:
                 # Include original images in the first 1/2 of traing samples
-                if epoch < 150:
+                if epoch < 300:
                     p = im['src']
                     if p not in c:
                         c[p] = load_img(im['src'], image_size, mask=mask, aug=False)
@@ -113,7 +113,7 @@ def test():
         c.append(load_img(x['src'], image_size, False, False))
         d.append(labels_map[x['class']])
     while True:
-        if epoch % 20 < 10:
+        if epoch < 150:
             yield (np.array(c), np.array(d))
         else:
             yield (np.array(a), np.array(b))
@@ -121,8 +121,8 @@ def test():
 
 # Compile the model
 lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
-    0.001,
-    decay_steps=500,
+    0.00001,
+    decay_steps=1000,
     decay_rate=0.1,
     staircase=True
 )
@@ -137,7 +137,7 @@ if FLAGS.model:
 # Train the network
 history = model.fit(
     train(),
-    epochs=300,
+    epochs=500,
     steps_per_epoch=20,
     validation_data=test(),
     validation_steps=1,
