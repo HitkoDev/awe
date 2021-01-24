@@ -38,8 +38,14 @@ def train():
     b = []
     c = {}
     while True:
-        k = train_dataset.get_epoch(n, image_size, 150)
-        yield ([k[0], k[1]], k[2])
+        a = []
+        b = []
+        c = []
+        for k in train_dataset.get_epoch(n, image_size, 150):
+            a.append(k[0])
+            b.append(k[1])
+            c.append(k[2])
+        yield ([a, b], c)
     while True:
         random.shuffle(train_dataset.images)
         for x in train_dataset.images:
@@ -68,8 +74,14 @@ def test():
     a = []
     b = []
     while True:
-        k = test_dataset.get_epoch(2, image_size, 28, False)
-        yield ([k[0], k[1]], k[2])
+        a = []
+        b = []
+        c = []
+        for k in test_dataset.get_epoch(2, image_size, 28, False):
+            a.append(k[0])
+            b.append(k[1])
+            c.append(k[2])
+        yield ([a, b], c)
     for x in test_images:
         a.append(load_img(x['src'], image_size, False))
         b.append(labels_map[x['class']])
@@ -81,7 +93,7 @@ img1 = tf.keras.Input(shape=(image_size, image_size, 3))
 img2 = tf.keras.Input(shape=(image_size, image_size, 3))
 f1 = model(tf.keras.applications.inception_resnet_v2.preprocess_input(img1))
 f2 = model(tf.keras.applications.inception_resnet_v2.preprocess_input(img2))
-diff = tf.keras.backend.sum(tf.keras.backend.square(f1 - f2))
+diff = tf.keras.layers.Lambda(lambda x: tf.sqrt(tf.reduce_sum(input_tensor=tf.pow(x[0] - x[1], 2), axis=1, keepdims=True)))([f1, f2])
 
 model = tf.keras.Model(inputs=[img1, img2], outputs=diff)
 
@@ -96,7 +108,7 @@ lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
 )
 model.compile(
     optimizer=tf.keras.optimizers.Adam(lr_schedule, amsgrad=True),
-    loss=tfa.losses.ContrastiveLoss()
+    loss=tfa.losses.ContrastiveLoss(0.5)
 )
 
 if FLAGS.model:
@@ -106,7 +118,7 @@ if FLAGS.model:
 history = model.fit(
     train(),
     epochs=300,
-    steps_per_epoch=1,
+    steps_per_epoch=10,
     validation_data=test(),
     validation_steps=1,
     initial_epoch=FLAGS.epoch,

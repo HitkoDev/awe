@@ -60,7 +60,7 @@ class AWEDataset(object):
                         img1.append([
                             im['src'],
                             im2['src'],
-                            1
+                            1.
                         ])
                         break
             i += 1
@@ -83,7 +83,7 @@ class AWEDataset(object):
                         img2.append([
                             im['src'],
                             im2['src'],
-                            0
+                            0.
                         ])
                         break
             i += 1
