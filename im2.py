@@ -128,7 +128,7 @@ def test():
             a1.append(imgs[l])
             b1.append(b[x])
 
-        yield (np.array(a), np.array(b))
+        yield (np.array(a1), np.array(b1))
 
 
 # Compile the model
