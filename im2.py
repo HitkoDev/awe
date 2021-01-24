@@ -78,8 +78,8 @@ def train():
             for i2 in range(i1 + 1, len(imgs)):
                 im1 = imgs[i1]
                 im2 = imgs[i2]
-                dist = np.sum((im1[2] - im2[2])**2)**0.5
-                if im1[1] == im2[2]:
+                dist = (np.sum((im1[2] - im2[2])**2))**0.5
+                if im1[1] == im2[1]:
                     same.append([
                         i1,
                         i2,
@@ -115,7 +115,7 @@ def train():
                     a1.append(imgs[el[1][0]])
                     b1.append(imgs[el[1][1]])
 
-        yield (np.array(a), np.array(b))
+        yield (np.array(a1), np.array(b1))
 
 
 def test():
