@@ -99,7 +99,7 @@ def train():
         added = True
         while added:
             added = False
-            for el in same[:len(same) // 2]:
+            for el in same:
                 if el[0] not in used and el[1] not in used:
                     used.add(el[0])
                     a1.append(imgs[el[0]][0])
@@ -120,7 +120,7 @@ def train():
 
         a = []
         b = []
-        c = 0
+        g = 0
         for k in range(len(a1)):
             a.append(a1[k])
             b.append(b1[k])
@@ -128,8 +128,9 @@ def train():
                 yield (np.array(a), np.array(b))
                 a = []
                 b = []
-                c += 1
-        print(c)
+                g += 1
+            if g == 20:
+                break
 
 
 def test():
