@@ -32,7 +32,7 @@ class TrainEpochCallback(tf.keras.callbacks.Callback):
 
 def train():
     global epoch
-    n = 2
+    n = 30
     i = 0
     a = []
     b = []
@@ -41,7 +41,7 @@ def train():
         random.shuffle(train_dataset.images)
         for x in train_dataset.images:
             random.shuffle(x)
-            for im in x:
+            for im in x[0:1]:
                 # Include original images in the first 1/2 of traing samples
                 if epoch < 150:
                     p = im['src']
