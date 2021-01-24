@@ -51,7 +51,7 @@ def train():
     while True:
         dataset = train_dataset
         mask = True
-        if epoch % 2 == 0:
+        if epoch % 20 < 10:
             dataset = train1_dataset
             mask = False
         random.shuffle(dataset.images)
@@ -113,7 +113,7 @@ def test():
         c.append(load_img(x['src'], image_size, False, False))
         d.append(labels_map[x['class']])
     while True:
-        if epoch % 2 == 0:
+        if epoch % 20 < 10:
             yield (np.array(c), np.array(d))
         else:
             yield (np.array(a), np.array(b))
