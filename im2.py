@@ -100,20 +100,20 @@ def train():
             for el in same:
                 if el[0] not in used and el[1] not in used:
                     used.add(el[0])
-                    a1.append(imgs[el[0][0]])
-                    b1.append(imgs[el[0][1]])
+                    a1.append(imgs[el[0]][0])
+                    b1.append(imgs[el[0]][1])
                     used.add(el[1])
-                    a1.append(imgs[el[1][0]])
-                    b1.append(imgs[el[1][1]])
+                    a1.append(imgs[el[1]][0])
+                    b1.append(imgs[el[1]][1])
 
             for el in diff:
                 if el[0] not in used and el[1] not in used:
                     used.add(el[0])
-                    a1.append(imgs[el[0][0]])
-                    b1.append(imgs[el[0][1]])
+                    a1.append(imgs[el[0]][0])
+                    b1.append(imgs[el[0]][1])
                     used.add(el[1])
-                    a1.append(imgs[el[1][0]])
-                    b1.append(imgs[el[1][1]])
+                    a1.append(imgs[el[1]][0])
+                    b1.append(imgs[el[1]][1])
 
         yield (np.array(a1), np.array(b1))
 
