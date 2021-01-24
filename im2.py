@@ -32,116 +32,72 @@ class TrainEpochCallback(tf.keras.callbacks.Callback):
 
 def train():
     global epoch
+    n = 2
+    i = 0
+    a = []
+    b = []
+    c = {}
     while True:
-        a = []
-        b = []
-        c = []
-        ds = train_dataset.get_epoch(2, image_size, 150)
-        for k in ds:
-            a.append(k[0])
-            b.append(k[1])
-            c.append(k[2])
-        yield ([a, b], c)
+        random.shuffle(train_dataset.images)
+        for x in train_dataset.images:
+            random.shuffle(x)
+            for im in x:
+                # Include original images in the first 1/2 of traing samples
+                if epoch < 150:
+                    p = im['src']
+                    if p not in c:
+                        c[p] = load_img(im['src'], image_size, aug=False)
+                    a.append(c[p])
+                    b.append(labels_map[im['class']])
+
+                a.append(load_img(im['src'], image_size))
+                b.append(labels_map[im['class']])
+            if i == n:
+                yield (np.array(a), np.array(b))
+                i = 0
+                a = []
+                b = []
+            i += 1
 
 
 def test():
-    train_images = [x for y in train_dataset.images for x in y]
     test_images = [x for y in test_dataset.images for x in y]
     a = []
     b = []
+    for x in test_images:
+        a.append(load_img(x['src'], image_size, False))
+        b.append(labels_map[x['class']])
     while True:
-        imgs = [x for x in train_images]
-        random.shuffle(imgs)
-        random.shuffle(test_images)
-        a = []
-        b = []
-        c = []
-        i = 0
-        lm = len(test_images) // 2
-        for t in test_images:
-            loop = 0
-            while len(a) < lm:
-                if i >= len(imgs):
-                    i = 0
-                    if len(a) == loop:
-                        break
-                    loop = len(a)
-                if imgs[i] and imgs[i]['class'] == t['class']:
-                    a.append(t['src'])
-                    b.append(imgs[i]['src'])
-                    c.append(1.)
-                    imgs[i] = False
-                    break
-                i += 1
-
-            loop = 0
-            while len(a) < len(test_images):
-                if i >= len(imgs):
-                    i = 0
-                    if len(a) == loop:
-                        break
-                    loop = len(a)
-                if imgs[i] and imgs[i]['class'] != t['class']:
-                    a.append(t['src'])
-                    b.append(imgs[i]['src'])
-                    c.append(0.)
-                    imgs[i] = False
-                    break
-                i += 1
-
-        n = 2
-        ds = []
-        for i in range(len(a) // n):
-            f = i*n
-            g = (i+1) * n
-            is_same = [x for x in c[f:g]]
-            left = [load_img(x, image_size, False, False) for x in a[f:g]]
-            right = [load_img(x, image_size, True, False) for x in b[f:g]]
-            ds.append([
-                np.array(left),
-                np.array(right),
-                np.reshape(np.array(is_same), (-1, 1))
-            ])
-        a = []
-        b = []
-        c = []
-        for k in ds:
-            a.append(k[0])
-            b.append(k[1])
-            c.append(k[2])
-        yield ([a, b], c)
+        yield (np.array(a), np.array(b))
 
 
-img1 = tf.keras.Input(shape=(image_size, image_size, 3))
-img2 = tf.keras.Input(shape=(image_size, image_size, 3))
-f1 = model(tf.keras.applications.inception_resnet_v2.preprocess_input(img1))
-f2 = model(tf.keras.applications.inception_resnet_v2.preprocess_input(img2))
-diff = tf.keras.layers.Lambda(lambda x: tf.sqrt(tf.reduce_sum(input_tensor=tf.pow(x[0] - x[1], 2), axis=1, keepdims=True)))([f1, f2])
+img = tf.keras.Input(shape=(image_size, image_size, 3))
+f = model(tf.keras.applications.inception_resnet_v2.preprocess_input(img))
 
-model = tf.keras.Model(inputs=[img1, img2], outputs=diff)
+model = tf.keras.Model(inputs=img, outputs=f)
 
 model.save('m2.h5')
 
 # Compile the model
 lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
     0.0001,
-    decay_steps=1000,
+    decay_steps=15000,
     decay_rate=0.1,
-    staircase=False
+    staircase=True
 )
 model.compile(
     optimizer=tf.keras.optimizers.Adam(lr_schedule, amsgrad=True),
-    loss=tfa.losses.ContrastiveLoss(0.5)
+    loss=tfa.losses.TripletSemiHardLoss()
 )
 
 if FLAGS.model:
-    model.load_weights(FLAGS.model)
+    model.load_weights(FLAGS.model, by_name=True, skip_mismatch=True)
 
 # Train the network
 history = model.fit(
     train(),
     epochs=300,
-    steps_per_epoch=10,
+    steps_per_epoch=100,
     validation_data=test(),
     validation_steps=1,
     initial_epoch=FLAGS.epoch,
