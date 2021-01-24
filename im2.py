@@ -53,12 +53,14 @@ def test():
         imgs = [x for x in train_images]
         random.shuffle(imgs)
         random.shuffle(test_images)
+        imgs2 = test_images[0:150]
         a = []
         b = []
         c = []
         i = 0
-        for t in test_images:
-            if len(a) % 2 == 0:
+        for t in imgs2:
+            print(len(a))
+            if len(a) < (len(imgs2) / 2):
                 a.append(load_img(t['src'], image_size, False, False))
                 c.append(1.)
                 while len(b) < len(a):
@@ -77,7 +79,7 @@ def test():
                         break
                     i = (i + 1) % len(imgs)
 
-        yield ([a, b], np.reshape(np.array(c), (-1, 1)))
+        yield ([np.array(a), np.array(b)], np.reshape(np.array(c), (-1, 1)))
 
 
 img1 = tf.keras.Input(shape=(image_size, image_size, 3))
