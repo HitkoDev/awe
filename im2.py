@@ -69,9 +69,9 @@ def test():
                             break
                         loop = len(a)
                     if imgs[i] and imgs[i]['class'] == t['class']:
-                        a.append(load_img(t['src'], image_size, False, False))
+                        a.append(t['src'])
+                        b.append(imgs[i]['src'])
                         c.append(1.)
-                        b.append(load_img(imgs[i]['src'], image_size, True, False))
                         imgs[i] = False
                         break
                     i += 1
@@ -84,16 +84,18 @@ def test():
                             break
                         loop = len(a)
                     if imgs[i] and imgs[i]['class'] != t['class']:
-                        a.append(load_img(t['src'], image_size, False, False))
+                        a.append(t['src'])
+                        b.append(imgs[i]['src'])
                         c.append(0.)
-                        b.append(load_img(imgs[i]['src'], image_size, True, False))
                         imgs[i] = False
                         break
                     i += 1
 
-        print(lm, len(a))
+        is_same = [x for x in c]
+        left = [load_img(x, image_size, False, False) for x in a]
+        right = [load_img(x, image_size, True, False) for x in b]
 
-        yield ([np.array(a), np.array(b)], np.reshape(np.array(c), (-1, 1)))
+        yield ([np.array(left), np.array(right)], np.reshape(np.array(is_same), (-1, 1)))
 
 
 img1 = tf.keras.Input(shape=(image_size, image_size, 3))
