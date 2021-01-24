@@ -24,6 +24,14 @@ for i in range(len(train_dataset.images)):
 epoch = 0
 
 
+img = tf.keras.Input(shape=(image_size, image_size, 3))
+f = model(tf.keras.applications.inception_resnet_v2.preprocess_input(img))
+
+model = tf.keras.Model(inputs=img, outputs=f)
+
+model.save('m2.h5')
+
+
 class TrainEpochCallback(tf.keras.callbacks.Callback):
     def on_epoch_begin(self, ep, logs=None):
         global epoch
@@ -31,7 +39,7 @@ class TrainEpochCallback(tf.keras.callbacks.Callback):
 
 
 def train():
-    global epoch
+    global epoch, model
     n = 20
     i = 0
     a = []
@@ -41,17 +49,39 @@ def train():
         random.shuffle(train_dataset.images)
         for x in train_dataset.images:
             random.shuffle(x)
-            for im in x[0:2]:
+            img = []
+            lbl = []
+            for im in x:
                 # Include original images in the first 1/2 of traing samples
                 if epoch < 150:
                     p = im['src']
                     if p not in c:
                         c[p] = load_img(im['src'], image_size, aug=False)
-                    a.append(c[p])
-                    b.append(labels_map[im['class']])
+                    img.append(c[p])
+                    lbl.append(labels_map[im['class']])
 
-                a.append(load_img(im['src'], image_size))
-                b.append(labels_map[im['class']])
+                img.append(load_img(im['src'], image_size))
+                lbl.append(labels_map[im['class']])
+            # select pairs with greatest distance
+            pred = model.predict(np.array(img))
+            m2 = []
+            for i1 in range(len(pred) - 1):
+                for i2 in range(i1 + 1, len(pred)):
+                    dist = (np.sum((pred[i1] - pred[i2])**2))**0.5
+                    m2.append([i1, i2, dist])
+            m2 = sorted(m2, key=lambda a_entry: -a_entry[2])
+            a.append(img[m2[0][0]])
+            b.append(lbl[m2[0][0]])
+            a.append(img[m2[0][1]])
+            b.append(lbl[m2[0][1]])
+            for en in m2[1:]:
+                if en[0] != m2[0][0] and en[1] != m2[0][0] and en[0] != m2[0][1] and en[1] != m2[0][1]:
+                    a.append(img[en[0]])
+                    b.append(lbl[en[0]])
+                    a.append(img[en[1]])
+                    b.append(lbl[en[1]])
+                    break
+
             if i == n:
                 yield (np.array(a), np.array(b))
                 i = 0
@@ -70,13 +100,6 @@ def test():
     while True:
         yield (np.array(a), np.array(b))
 
-
-img = tf.keras.Input(shape=(image_size, image_size, 3))
-f = model(tf.keras.applications.inception_resnet_v2.preprocess_input(img))
-
-model = tf.keras.Model(inputs=img, outputs=f)
-
-model.save('m2.h5')
 
 # Compile the model
 lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
