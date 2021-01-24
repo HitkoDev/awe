@@ -58,26 +58,40 @@ def test():
         b = []
         c = []
         i = 0
+        lm = len(imgs2) / 2
         for t in imgs2:
-            print(len(a))
-            if len(a) < (len(imgs2) / 2):
-                a.append(load_img(t['src'], image_size, False, False))
-                c.append(1.)
+            if len(a) < lm:
+                loop = 0
                 while len(b) < len(a):
+                    if i >= len(imgs):
+                        i = 0
+                        if len(a) == loop:
+                            break
+                        loop = len(a)
                     if imgs[i] and imgs[i]['class'] == t['class']:
+                        a.append(load_img(t['src'], image_size, False, False))
+                        c.append(1.)
                         b.append(load_img(imgs[i]['src'], image_size, True, False))
                         imgs[i] = False
                         break
-                    i = (i + 1) % len(imgs)
+                    i += 1
             else:
-                a.append(load_img(t['src'], image_size, False, False))
-                c.append(0.)
+                loop = 0
                 while len(b) < len(a):
+                    if i >= len(imgs):
+                        i = 0
+                        if len(a) == loop:
+                            break
+                        loop = len(a)
                     if imgs[i] and imgs[i]['class'] != t['class']:
+                        a.append(load_img(t['src'], image_size, False, False))
+                        c.append(0.)
                         b.append(load_img(imgs[i]['src'], image_size, True, False))
                         imgs[i] = False
                         break
-                    i = (i + 1) % len(imgs)
+                    i += 1
+
+        print(lm, len(a))
 
         yield ([np.array(a), np.array(b)], np.reshape(np.array(c), (-1, 1)))
 
