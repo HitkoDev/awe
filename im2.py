@@ -125,9 +125,9 @@ model.save('m2.h5')
 # Compile the model
 lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
     0.0001,
-    decay_steps=15,
+    decay_steps=50,
     decay_rate=0.1,
-    staircase=True
+    staircase=False
 )
 model.compile(
     optimizer=tf.keras.optimizers.Adam(lr_schedule, amsgrad=True),
