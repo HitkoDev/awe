@@ -46,7 +46,6 @@ def train():
     b = []
     c = {}
     while True:
-        imgs = []
         random.shuffle(train_dataset.images)
         for x in train_dataset.images:
             random.shuffle(x)
@@ -65,72 +64,30 @@ def train():
                 lbl.append(labels_map[im['class']])
             # select pairs with greatest distance
             pred = model.predict(np.array(img))
-            for i in range(len(pred)):
-                imgs.append([
-                    img[i],
-                    lbl[i],
-                    pred[i]
-                ])
+            m2 = []
+            for i1 in range(len(pred) - 1):
+                for i2 in range(i1 + 1, len(pred)):
+                    dist = (np.sum((pred[i1] - pred[i2])**2))**0.5
+                    m2.append([i1, i2, dist])
+            m2 = sorted(m2, key=lambda a_entry: -a_entry[2])
+            a.append(img[m2[0][0]])
+            b.append(lbl[m2[0][0]])
+            a.append(img[m2[0][1]])
+            b.append(lbl[m2[0][1]])
+            for en in m2[1:]:
+                if en[0] != m2[0][0] and en[1] != m2[0][0] and en[0] != m2[0][1] and en[1] != m2[0][1]:
+                    a.append(img[en[0]])
+                    b.append(lbl[en[0]])
+                    a.append(img[en[1]])
+                    b.append(lbl[en[1]])
+                    break
 
-        same = []
-        diff = []
-        for i1 in range(len(imgs) - 1):
-            for i2 in range(i1 + 1, len(imgs)):
-                im1 = imgs[i1]
-                im2 = imgs[i2]
-                dist = (np.sum((im1[2] - im2[2])**2))**0.5
-                if im1[1] == im2[1]:
-                    same.append([
-                        i1,
-                        i2,
-                        dist
-                    ])
-                else:
-                    diff.append([
-                        i1,
-                        i2,
-                        dist
-                    ])
-        same = sorted(same, key=lambda a_entry: -a_entry[2])
-        diff = sorted(diff, key=lambda a_entry: -a_entry[2])
-        used = set()
-        a1 = []
-        b1 = []
-        added = True
-        while added:
-            added = False
-            for el in same:
-                if el[0] not in used and el[1] not in used:
-                    used.add(el[0])
-                    a1.append(imgs[el[0]][0])
-                    b1.append(imgs[el[0]][1])
-                    used.add(el[1])
-                    a1.append(imgs[el[1]][0])
-                    b1.append(imgs[el[1]][1])
-                    added = True
-
-            for el in diff:
-                if el[0] not in used and el[1] not in used:
-                    used.add(el[0])
-                    a1.append(imgs[el[0]][0])
-                    b1.append(imgs[el[0]][1])
-                    used.add(el[1])
-                    a1.append(imgs[el[1]][0])
-                    b1.append(imgs[el[1]][1])
-
-        a = []
-        b = []
-        g = 0
-        for k in range(len(a1)):
-            a.append(a1[k])
-            b.append(b1[k])
-            if len(a) == 2 * n:
+            if i == n:
                 yield (np.array(a), np.array(b))
+                i = 0
                 a = []
                 b = []
-                g += 1
-            if g == 20:
-                break
+            i += 1
 
 
 def test():
