@@ -32,7 +32,7 @@ class TrainEpochCallback(tf.keras.callbacks.Callback):
 
 def train():
     global epoch
-    n = 30
+    n = 40
     i = 0
     a = []
     b = []
@@ -41,7 +41,7 @@ def train():
         random.shuffle(train_dataset.images)
         for x in train_dataset.images:
             random.shuffle(x)
-            for im in x[0:1]:
+            for im in x[0:2]:
                 # Include original images in the first 1/2 of traing samples
                 if epoch < 150:
                     p = im['src']
@@ -97,7 +97,7 @@ if FLAGS.model:
 history = model.fit(
     train(),
     epochs=300,
-    steps_per_epoch=100,
+    steps_per_epoch=5,
     validation_data=test(),
     validation_steps=1,
     initial_epoch=FLAGS.epoch,
