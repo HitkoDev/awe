@@ -53,13 +53,12 @@ def test():
         imgs = [x for x in train_images]
         random.shuffle(imgs)
         random.shuffle(test_images)
-        imgs2 = test_images[0:150]
         a = []
         b = []
         c = []
         i = 0
-        lm = len(imgs2) // 2
-        for t in imgs2:
+        lm = len(test_images) // 2
+        for t in test_images:
             loop = 0
             while len(a) < lm:
                 if i >= len(imgs):
@@ -76,7 +75,7 @@ def test():
                 i += 1
 
             loop = 0
-            while len(a) < len(imgs2):
+            while len(a) < len(test_images):
                 if i >= len(imgs):
                     i = 0
                     if len(a) == loop:
@@ -142,7 +141,7 @@ if FLAGS.model:
 history = model.fit(
     train(),
     epochs=300,
-    steps_per_epoch=1,
+    steps_per_epoch=10,
     validation_data=test(),
     validation_steps=1,
     initial_epoch=FLAGS.epoch,
