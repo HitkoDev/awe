@@ -128,7 +128,7 @@ lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
 )
 model.compile(
     optimizer=tf.keras.optimizers.Adam(lr_schedule),
-    loss=tfa.losses.TripletHardLoss(soft=True)
+    loss=tfa.losses.TripletHardLoss(soft=True, margin=0.5)
 )
 
 if FLAGS.model:
