@@ -91,11 +91,23 @@ def test():
                         break
                     i += 1
 
+        ds = []
         is_same = [x for x in c]
         left = [load_img(x, image_size, False, False) for x in a]
         right = [load_img(x, image_size, True, False) for x in b]
-
-        yield ([np.array(left), np.array(right)], np.reshape(np.array(is_same), (-1, 1)))
+        ds.append([
+            np.array(left),
+            np.array(right),
+            np.reshape(np.array(is_same), (-1, 1))
+        ])
+        a = []
+        b = []
+        c = []
+        for k in ds:
+            a.append(k[0])
+            b.append(k[1])
+            c.append(k[2])
+        yield ([a, b], c)
 
 
 img1 = tf.keras.Input(shape=(image_size, image_size, 3))
