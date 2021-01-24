@@ -128,13 +128,13 @@ def test():
 
 # Compile the model
 lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
-    0.001,
+    0.00001,
     decay_steps=500,
     decay_rate=0.1,
     staircase=True
 )
 model.compile(
-    optimizer=tf.keras.optimizers.Adam(lr_schedule, amsgrad=True),
+    optimizer=tf.keras.optimizers.Adam(lr_schedule),
     loss=tfa.losses.TripletHardLoss(margin=0.2)
 )
 
