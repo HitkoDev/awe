@@ -90,7 +90,7 @@ model.save('m2.h5')
 # Compile the model
 lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
     0.0001,
-    decay_steps=15000,
+    decay_steps=15,
     decay_rate=0.1,
     staircase=True
 )
@@ -106,7 +106,7 @@ if FLAGS.model:
 history = model.fit(
     train(),
     epochs=300,
-    steps_per_epoch=100,
+    steps_per_epoch=1,
     validation_data=test(),
     validation_steps=1,
     initial_epoch=FLAGS.epoch,
