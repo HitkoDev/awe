@@ -1,10 +1,6 @@
-import os
-
 import tensorflow as tf
 
 from model2 import model
-
-image_size = 299
 
 flags = tf.compat.v1.app.flags
 FLAGS = flags.FLAGS

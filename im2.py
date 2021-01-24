@@ -14,6 +14,9 @@ FLAGS = flags.FLAGS
 flags.DEFINE_integer('epoch', 0, 'Epoch to start from')
 flags.DEFINE_string('model', '', 'Model to restore')
 
+train1_dataset = AWEDataset(os.path.join('./images/nomask', 'train'))
+test1_dataset = AWEDataset(os.path.join('./images/nomask', 'test'))
+
 train_dataset = AWEDataset(os.path.join('./images/converted', 'train'))
 test_dataset = AWEDataset(os.path.join('./images/converted', 'test'))
 
@@ -46,8 +49,13 @@ def train():
     b = []
     c = {}
     while True:
-        random.shuffle(train_dataset.images)
-        for x in train_dataset.images:
+        dataset = train_dataset
+        mask = True
+        if epoch < 75:
+            dataset = train1_dataset
+            mask = False
+        random.shuffle(dataset.images)
+        for x in dataset.images:
             random.shuffle(x)
             img = []
             lbl = []
@@ -56,11 +64,11 @@ def train():
                 if epoch < 150:
                     p = im['src']
                     if p not in c:
-                        c[p] = load_img(im['src'], image_size, aug=False)
+                        c[p] = load_img(im['src'], image_size, mask=mask, aug=False)
                     img.append(c[p])
                     lbl.append(labels_map[im['class']])
 
-                img.append(load_img(im['src'], image_size))
+                img.append(load_img(im['src'], image_size, mask=mask))
                 lbl.append(labels_map[im['class']])
             # select pairs with greatest distance
             pred = model.predict(np.array(img))
@@ -91,26 +99,36 @@ def train():
 
 
 def test():
+    global epoch
     test_images = [x for y in test_dataset.images for x in y]
     a = []
     b = []
     for x in test_images:
         a.append(load_img(x['src'], image_size, False, False))
         b.append(labels_map[x['class']])
+    test1_images = [x for y in test1_dataset.images for x in y]
+    c = []
+    d = []
+    for x in test1_images:
+        c.append(load_img(x['src'], image_size, False, False))
+        d.append(labels_map[x['class']])
     while True:
-        yield (np.array(a), np.array(b))
+        if epoch < 75:
+            yield (np.array(c), np.array(d))
+        else:
+            yield (np.array(a), np.array(b))
 
 
 # Compile the model
 lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
     0.00001,
-    decay_steps=500,
+    decay_steps=1000,
     decay_rate=0.1,
     staircase=True
 )
 model.compile(
     optimizer=tf.keras.optimizers.Adam(lr_schedule),
-    loss=tfa.losses.TripletHardLoss(margin=0.2)
+    loss=tfa.losses.TripletHardLoss(soft=True)
 )
 
 if FLAGS.model:

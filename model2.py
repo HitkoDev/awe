@@ -65,9 +65,9 @@ def norm(x):
 
 def dropout_layer_factory():
     return[
-        tf.keras.layers.Dropout(0.1),
-        tf.keras.layers.Dense(256, activation=None),
-        tf.keras.layers.Dropout(0.1),
+#        tf.keras.layers.Dropout(0.3),
+        tf.keras.layers.Dense(128, activation=None),
+#        tf.keras.layers.Dropout(0.3),
         tf.keras.layers.Lambda(norm)
     ]
 

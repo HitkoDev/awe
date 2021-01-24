@@ -100,5 +100,6 @@ ENV/
 images/**/awe*
 images/**/AWE*
 images/**/converted*
+images/**/nomask*
 model
 logs
