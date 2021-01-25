@@ -475,8 +475,8 @@ def main():
                 # Do a huge print out of the current progress.
                 seconds_todo = (args.train_iterations - step) * elapsed_time
                 if test_summary:
-                    log.info('iter:{:6d}, loss min|avg|max: {:.3f}|{:.3f}|{:6.3f}, '
-                            'batch-p@{}: {:.2%}, val_loss min|avg|max: {:.3f}|{:.3f}|{:6.3f}, '
+                    log.info('iter:{:6d}, loss min|avg|max: {:.3f}|{:.3f}|{:.3f}, '
+                            'batch-p@{}: {:.2%}, val_loss min|avg|max: {:.3f}|{:.3f}|{:.3f}, '
                             'batch-p@{}: {:.2%}, ETA: {} ({:.2f}s/it)'.format(
                                 step,
                                 float(np.min(b_loss)),
