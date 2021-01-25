@@ -271,11 +271,13 @@ def main():
 
     # Augment the data if specified by the arguments.
     if args.flip_augment:
+        random_angles = tf.random.uniform(shape=(), minval=0, maxval=1, dtype=tf.int32) * 2
         dataset = dataset.map(
-            lambda im, fid, pid: (tf.image.rot90(im, tf.random.uniform(shape=(1), minval=0, maxval=1, dtype=tf.int32) * 2), fid, pid))
+            lambda im, fid, pid: (tf.image.rot90(im, k=random_angles), fid, pid))
     if args.rotate_augment:
+        random_angles = tf.random.uniform(shape=(), minval=-np.pi / 4, maxval=np.pi / 4)
         dataset = dataset.map(
-            lambda im, fid, pid: (tfa.image.rotate(im, tf.random.uniform(shape=(1), minval=-np.pi / 4, maxval=np.pi / 4)), fid, pid))
+            lambda im, fid, pid: (tfa.image.rotate(im, random_angles), fid, pid))
     if args.crop_augment:
         dataset = dataset.map(
             lambda im, fid, pid: (tf.image.random_crop(im, net_input_size + (3,)), fid, pid))
@@ -288,7 +290,8 @@ def main():
     dataset = dataset.prefetch(1)
 
     # Since we repeat the data infinitely, we only need a one-shot iterator.
-    images, fids, pids = tf.compat.v1.data.make_one_shot_iterator(dataset).get_next()
+    dataset_iterator = tf.compat.v1.data.make_initializable_iterator(dataset)
+    images, fids, pids = dataset_iterator.get_next()
     images_ph = tf.compat.v1.placeholder(images.dtype, shape=images.get_shape())
     pids_ph = tf.compat.v1.placeholder(pids.dtype, shape=pids.get_shape())
 
@@ -442,6 +445,7 @@ def main():
         merged_summary = tf.compat.v1.summary.merge_all()
         summary_writer = tf.compat.v1.summary.FileWriter(os.path.join(args.experiment_root, 'train'), sess.graph)
         test_summary_writer = tf.compat.v1.summary.FileWriter(os.path.join(args.experiment_root, 'validation'), sess.graph)
+        sess.run(dataset_iterator.initializer)
 
         start_step = sess.run(global_step)
         log.info('Starting training from iteration {}.'.format(start_step))
