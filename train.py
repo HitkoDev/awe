@@ -11,7 +11,7 @@ from signal import SIGINT, SIGTERM
 
 import numpy as np
 import tensorflow as tf
-import tf_slim as slim
+import tensorflow_addons as tfa
 
 import common
 import lbtoolbox as lb
@@ -134,6 +134,10 @@ parser.add_argument(
 parser.add_argument(
     '--flip_augment', action='store_true', default=False,
     help='When this flag is provided, flip augmentation is performed.')
+
+parser.add_argument(
+    '--rotate_augment', action='store_true', default=False,
+    help='When this flag is provided, rotate augmentation is performed.')
 
 parser.add_argument(
     '--crop_augment', action='store_true', default=False,
@@ -267,8 +271,13 @@ def main():
 
     # Augment the data if specified by the arguments.
     if args.flip_augment:
+        random_angles = tf.random.uniform(minval=0, maxval=1, dtype=tf.int32) * 2
         dataset = dataset.map(
-            lambda im, fid, pid: (tf.image.random_flip_left_right(im), fid, pid))
+            lambda im, fid, pid: (tf.image.rot90(im, random_angles), fid, pid))
+    if args.rotate_augment:
+        random_angles = tf.random.uniform(minval=-np.pi / 4, maxval=np.pi / 4)
+        dataset = dataset.map(
+            lambda im, fid, pid: (tfa.image.rotate(im, random_angles), fid, pid))
     if args.crop_augment:
         dataset = dataset.map(
             lambda im, fid, pid: (tf.image.random_crop(im, net_input_size + (3,)), fid, pid))
