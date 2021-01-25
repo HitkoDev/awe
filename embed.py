@@ -80,12 +80,12 @@ def flip_augment(image, fid, pid):
 
 def five_crops(image, crop_size):
     """ Returns the central and four corner crops of `crop_size` from `image`. """
-    image_size = tf.shape(image)[:2]
+    image_size = tf.shape(input=image)[:2]
     crop_margin = tf.subtract(image_size, crop_size)
-    assert_size = tf.assert_non_negative(
+    assert_size = tf.compat.v1.assert_non_negative(
         crop_margin, message='Crop size must be smaller or equal to the image size.')
     with tf.control_dependencies([assert_size]):
-        top_left = tf.floor_div(crop_margin, 2)
+        top_left = tf.math.floordiv(crop_margin, 2)
         bottom_right = tf.add(top_left, crop_size)
     center       = image[top_left[0]:bottom_right[0], top_left[1]:bottom_right[1]]
     top_left     = image[:-crop_margin[0], :-crop_margin[1]]
@@ -165,7 +165,7 @@ def main():
     modifiers = ['original']
     if args.flip_augment:
         dataset = dataset.map(flip_augment)
-        dataset = dataset.apply(tf.contrib.data.unbatch())
+        dataset = dataset.unbatch()
         modifiers = [o + m for m in ['', '_flip'] for o in modifiers]
 
     if args.crop_augment == 'center':
@@ -177,7 +177,7 @@ def main():
             tf.stack(five_crops(im, net_input_size)),
             tf.stack([fid]*5),
             tf.stack([pid]*5)))
-        dataset = dataset.apply(tf.contrib.data.unbatch())
+        dataset = dataset.unbatch()
         modifiers = [o + m for o in modifiers for m in [
             '_center', '_top_left', '_top_right', '_bottom_left', '_bottom_right']]
     elif args.crop_augment == 'avgpool':
@@ -191,17 +191,17 @@ def main():
     # Overlap producing and consuming.
     dataset = dataset.prefetch(1)
 
-    images, _, _ = dataset.make_one_shot_iterator().get_next()
+    images, _, _ = tf.compat.v1.data.make_one_shot_iterator(dataset).get_next()
 
     # Create the model and an embedding head.
     model = import_module('nets.' + args.model_name)
     head = import_module('heads.' + args.head_name)
 
     endpoints, body_prefix = model.endpoints(images, is_training=False)
-    with tf.name_scope('head'):
+    with tf.compat.v1.name_scope('head'):
         endpoints = head.head(endpoints, args.embedding_dim, is_training=False)
 
-    with h5py.File(args.filename, 'w') as f_out, tf.Session() as sess:
+    with h5py.File(args.filename, 'w') as f_out, tf.compat.v1.Session() as sess:
         # Initialize the network/load the checkpoint.
         if args.checkpoint is None:
             checkpoint = tf.train.latest_checkpoint(args.experiment_root)
@@ -209,7 +209,7 @@ def main():
             checkpoint = os.path.join(args.experiment_root, args.checkpoint)
         if not args.quiet:
             print('Restoring from checkpoint: {}'.format(checkpoint))
-        tf.train.Saver().restore(sess, checkpoint)
+        tf.compat.v1.train.Saver().restore(sess, checkpoint)
 
         # Go ahead and embed the whole dataset, with all augmented versions too.
         emb_storage = np.zeros(

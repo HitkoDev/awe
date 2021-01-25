@@ -42,14 +42,14 @@ def cdist(a, b, metric='euclidean'):
         epsilon is added because the gradient of the square-root at zero is
         undefined. Thus, it will never return exact zero in these cases.
     """
-    with tf.name_scope("cdist"):
+    with tf.compat.v1.name_scope("cdist"):
         diffs = all_diffs(a, b)
         if metric == 'sqeuclidean':
-            return tf.reduce_sum(tf.square(diffs), axis=-1)
+            return tf.reduce_sum(input_tensor=tf.square(diffs), axis=-1)
         elif metric == 'euclidean':
-            return tf.sqrt(tf.reduce_sum(tf.square(diffs), axis=-1) + 1e-12)
+            return tf.sqrt(tf.reduce_sum(input_tensor=tf.square(diffs), axis=-1) + 1e-12)
         elif metric == 'cityblock':
-            return tf.reduce_sum(tf.abs(diffs), axis=-1)
+            return tf.reduce_sum(input_tensor=tf.abs(diffs), axis=-1)
         else:
             raise NotImplementedError(
                 'The following metric is not implemented by `cdist` yet: {}'.format(metric))
@@ -62,7 +62,7 @@ cdist.supported_metrics = [
 
 def get_at_indices(tensor, indices):
     """ Like `tensor[np.arange(len(tensor)), indices]` in numpy. """
-    counter = tf.range(tf.shape(indices, out_type=indices.dtype)[0])
+    counter = tf.range(tf.shape(input=indices, out_type=indices.dtype)[0])
     return tf.gather_nd(tensor, tf.stack((counter, indices), -1))
 
 
@@ -80,15 +80,15 @@ def batch_hard(dists, pids, margin, batch_precision_at_k=None):
     Returns:
         A 1D tensor of shape (B,) containing the loss value for each sample.
     """
-    with tf.name_scope("batch_hard"):
+    with tf.compat.v1.name_scope("batch_hard"):
         same_identity_mask = tf.equal(tf.expand_dims(pids, axis=1),
                                       tf.expand_dims(pids, axis=0))
         negative_mask = tf.logical_not(same_identity_mask)
-        positive_mask = tf.logical_xor(same_identity_mask,
-                                       tf.eye(tf.shape(pids)[0], dtype=tf.bool))
+        positive_mask = tf.math.logical_xor(same_identity_mask,
+                                       tf.eye(tf.shape(input=pids)[0], dtype=tf.bool))
 
-        furthest_positive = tf.reduce_max(dists*tf.cast(positive_mask, tf.float32), axis=1)
-        closest_negative = tf.map_fn(lambda x: tf.reduce_min(tf.boolean_mask(x[0], x[1])),
+        furthest_positive = tf.reduce_max(input_tensor=dists*tf.cast(positive_mask, tf.float32), axis=1)
+        closest_negative = tf.map_fn(lambda x: tf.reduce_min(input_tensor=tf.boolean_mask(tensor=x[0], mask=x[1])),
                                     (dists, negative_mask), tf.float32)
         # Another way of achieving the same, though more hacky:
         # closest_negative = tf.reduce_min(dists + 1e5*tf.cast(same_identity_mask, tf.float32), axis=1)
@@ -109,7 +109,7 @@ def batch_hard(dists, pids, margin, batch_precision_at_k=None):
 
     # For monitoring, compute the within-batch top-1 accuracy and the
     # within-batch precision-at-k, which is somewhat more expressive.
-    with tf.name_scope("monitoring"):
+    with tf.compat.v1.name_scope("monitoring"):
         # This is like argsort along the last axis. Add one to K as we'll
         # drop the diagonal.
         _, indices = tf.nn.top_k(-dists, k=batch_precision_at_k+1)
@@ -120,8 +120,8 @@ def batch_hard(dists, pids, margin, batch_precision_at_k=None):
         # Generate the index indexing into the batch dimension.
         # This is simething like [[0,0,0],[1,1,1],...,[B,B,B]]
         batch_index = tf.tile(
-            tf.expand_dims(tf.range(tf.shape(indices)[0]), 1),
-            (1, tf.shape(indices)[1]))
+            tf.expand_dims(tf.range(tf.shape(input=indices)[0]), 1),
+            (1, tf.shape(input=indices)[1]))
 
         # Stitch the above together with the argsort indices to get the
         # indices of the top-k of each row.
@@ -134,13 +134,13 @@ def batch_hard(dists, pids, margin, batch_precision_at_k=None):
         #top1_is_same = get_at_indices(same_identity_mask, top_idxs[:,1])
 
         topk_is_same_f32 = tf.cast(topk_is_same, tf.float32)
-        top1 = tf.reduce_mean(topk_is_same_f32[:,0])
-        prec_at_k = tf.reduce_mean(topk_is_same_f32)
+        top1 = tf.reduce_mean(input_tensor=topk_is_same_f32[:,0])
+        prec_at_k = tf.reduce_mean(input_tensor=topk_is_same_f32)
 
         # Finally, let's get some more info that can help in debugging while
         # we're at it!
-        negative_dists = tf.boolean_mask(dists, negative_mask)
-        positive_dists = tf.boolean_mask(dists, positive_mask)
+        negative_dists = tf.boolean_mask(tensor=dists, mask=negative_mask)
+        positive_dists = tf.boolean_mask(tensor=dists, mask=positive_mask)
 
         return diff, top1, prec_at_k, topk_is_same, negative_dists, positive_dists
 

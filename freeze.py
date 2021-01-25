@@ -66,31 +66,31 @@ def save(args):
     Input node name: "input"
     Output node name: "head/out_emb"
     """
-    images = tf.placeholder(tf.float32, shape=(
+    images = tf.compat.v1.placeholder(tf.float32, shape=(
         None, args.net_input_height, args.net_input_width, 3), name='input')
 
     model = import_module('nets.' + args.model_name)
     head = import_module('heads.' + args.head_name)
 
     endpoints, body_prefix = model.endpoints(images, is_training=False)
-    with tf.name_scope('head'):
+    with tf.compat.v1.name_scope('head'):
         endpoints = head.head(endpoints, args.embedding_dim, is_training=False)
 
-    with tf.Session() as sess:
-        tf.train.Saver().restore(sess, args.checkpoint_name)
+    with tf.compat.v1.Session() as sess:
+        tf.compat.v1.train.Saver().restore(sess, args.checkpoint_name)
         output_node_names = ['head/out_emb']
 
         if args.save_graph:
-            summary_writer = tf.summary.FileWriter(logdir='./logs/')
+            summary_writer = tf.compat.v1.summary.FileWriter(logdir='./logs/')
             summary_writer.add_graph(graph=sess.graph)
             print('saved graph')
 
-        output_graph_def = tf.graph_util.convert_variables_to_constants(
+        output_graph_def = tf.compat.v1.graph_util.convert_variables_to_constants(
             sess,
-            tf.get_default_graph().as_graph_def(),
+            tf.compat.v1.get_default_graph().as_graph_def(),
             output_node_names
         )
-        with tf.gfile.GFile(args.frozen_model_path, 'wb') as f:
+        with tf.io.gfile.GFile(args.frozen_model_path, 'wb') as f:
             f.write(output_graph_def.SerializeToString())
         print('{} ops in the frozen graph.'.format(len(output_graph_def.node)))
 
@@ -101,12 +101,12 @@ def load(args):
     Runs speed and memory benchmark.
     """
     # check memory usage of model with session config
-    config = tf.ConfigProto()
+    config = tf.compat.v1.ConfigProto()
     # config.gpu_options.per_process_gpu_memory_fraction = 0.1
     config.gpu_options.allow_growth = True
 
-    with tf.Session(graph=tf.Graph(), config=config) as sess:
-        output_graph_def = tf.GraphDef()
+    with tf.compat.v1.Session(graph=tf.Graph(), config=config) as sess:
+        output_graph_def = tf.compat.v1.GraphDef()
         with open(args.frozen_model_path, "rb") as f:
             output_graph_def.ParseFromString(f.read())
             tf.import_graph_def(output_graph_def, name='')

@@ -1,1 +1,1 @@
-python train.py --train_set images/train.csv --test_set images/test.csv --image_root ./images --experiment_root ./awe --batch_p 40 --initial_checkpoint resnet_v1_50.ckpt
+python train.py --train_set images/train.csv --test_set ./images/test.csv --image_root ./images --experiment_root ./awe --batch_p 40 --initial_checkpoint ./images/resnet_v1_50.ckpt

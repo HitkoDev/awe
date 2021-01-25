@@ -123,9 +123,9 @@ def main():
     excluder = import_module('excluders.' + args.excluder).Excluder(gallery_fids)
 
     # We go through the queries in batches, but we always need the whole gallery
-    batch_pids, batch_fids, batch_embs = tf.data.Dataset.from_tensor_slices(
+    batch_pids, batch_fids, batch_embs = tf.compat.v1.data.make_one_shot_iterator(tf.data.Dataset.from_tensor_slices(
         (query_pids, query_fids, query_embs)
-    ).batch(args.batch_size).make_one_shot_iterator().get_next()
+    ).batch(args.batch_size)).get_next()
 
     batch_distances = loss.cdist(batch_embs, gallery_embs, metric=args.metric)
 
@@ -138,7 +138,7 @@ def main():
     # Loop over the query embeddings and compute their APs and the CMC curve.
     aps = []
     cmc = np.zeros(len(gallery_pids), dtype=np.int32)
-    with tf.Session() as sess:
+    with tf.compat.v1.Session() as sess:
         for start_idx in count(step=args.batch_size):
             try:
                 # Compute distance to all gallery embeddings

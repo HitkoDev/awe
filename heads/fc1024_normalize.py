@@ -1,5 +1,6 @@
 import tensorflow as tf
-from tensorflow.contrib import slim
+import tf_slim as slim
+
 
 def head(endpoints, embedding_dim, is_training):
     endpoints['head_output'] = slim.fully_connected(
@@ -9,12 +10,12 @@ def head(endpoints, embedding_dim, is_training):
             'epsilon': 1e-5,
             'scale': True,
             'is_training': is_training,
-            'updates_collections': tf.GraphKeys.UPDATE_OPS,
+            'updates_collections': tf.compat.v1.GraphKeys.UPDATE_OPS,
         })
 
     endpoints['emb_raw'] = slim.fully_connected(
         endpoints['head_output'], embedding_dim, activation_fn=None,
-        weights_initializer=tf.orthogonal_initializer(), scope='emb')
+        weights_initializer=tf.compat.v1.orthogonal_initializer(), scope='emb')
     endpoints['emb'] = tf.nn.l2_normalize(endpoints['emb_raw'], -1, name="out_emb")
 
     return endpoints

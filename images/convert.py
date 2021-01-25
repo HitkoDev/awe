@@ -73,9 +73,9 @@ for x in os.listdir('AWEDataset'):
                 cv2.imwrite(target + '.png', out)
                 cls = '{}_{}'.format(x, lr)
                 if dir == 'test':
-                    test_rows.append([cls, target + '.png'])
+                    test_rows.append([cls, (target + '.png').replace('\\', '/')])
                 else:
-                    train_rows.append([cls, target + '.png'])
+                    train_rows.append([cls, (target + '.png').replace('\\', '/')])
 
 with open('test.csv', mode='w+', newline='') as f:
     writer = csv.writer(f)
