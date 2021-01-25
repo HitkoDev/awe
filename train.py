@@ -272,10 +272,10 @@ def main():
     # Augment the data if specified by the arguments.
     if args.flip_augment:
         dataset = dataset.map(
-            lambda im, fid, pid: (tf.image.rot90(im, tf.random.uniform(shape=(tf.shape(im)[0], ), minval=0, maxval=1, dtype=tf.int32) * 2), fid, pid))
+            lambda im, fid, pid: (tf.image.rot90(im, tf.random.uniform(shape=(1), minval=0, maxval=1, dtype=tf.int32) * 2), fid, pid))
     if args.rotate_augment:
         dataset = dataset.map(
-            lambda im, fid, pid: (tfa.image.rotate(im, tf.random.uniform(shape=(tf.shape(im)[0], ), minval=-np.pi / 4, maxval=np.pi / 4)), fid, pid))
+            lambda im, fid, pid: (tfa.image.rotate(im, tf.random.uniform(shape=(1), minval=-np.pi / 4, maxval=np.pi / 4)), fid, pid))
     if args.crop_augment:
         dataset = dataset.map(
             lambda im, fid, pid: (tf.image.random_crop(im, net_input_size + (3,)), fid, pid))
