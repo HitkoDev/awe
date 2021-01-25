@@ -19,7 +19,7 @@ import loss
 from heads import HEAD_CHOICES
 from nets import NET_CHOICES
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 tf.compat.v1.disable_eager_execution()
 
@@ -34,6 +34,10 @@ parser.add_argument(
 parser.add_argument(
     '--train_set',
     help='Path to the train_set csv file.')
+
+parser.add_argument(
+    '--test_set',
+    help='Path to the test_set csv file.')
 
 parser.add_argument(
     '--image_root', type=common.readable_directory,
@@ -278,6 +282,50 @@ def main():
 
     # Since we repeat the data infinitely, we only need a one-shot iterator.
     images, fids, pids = tf.compat.v1.data.make_one_shot_iterator(dataset).get_next()
+    images_ph = tf.compat.v1.placeholder(images.dtype, shape=images.get_shape())
+    pids_ph = tf.compat.v1.placeholder(pids.dtype, shape=pids.get_shape())
+
+    test_images = None
+    if args.test_set:
+        # Load the data from the CSV file.
+        test_pids, test_fids = common.load_dataset(args.test_set, args.image_root)
+
+        # Setup a tf.Dataset where one "epoch" loops over all PIDS.
+        # PIDS are shuffled after every epoch and continue indefinitely.
+        test_unique_pids = np.unique(test_pids)
+        test_dataset = tf.data.Dataset.from_tensor_slices(test_unique_pids)
+        test_dataset = test_dataset.shuffle(len(test_unique_pids))
+
+        # Constrain the dataset size to a multiple of the batch-size, so that
+        # we don't get overlap at the end of each epoch.
+        test_dataset = test_dataset.take((len(test_unique_pids) // args.batch_p) * args.batch_p)
+        test_dataset = test_dataset.repeat(None)  # Repeat forever. Funny way of stating it.
+
+        # For every PID, get K images.
+        test_dataset = test_dataset.map(lambda pid: sample_k_fids_for_pid(
+            pid, all_fids=test_fids, all_pids=test_pids, batch_k=args.batch_k))
+
+        # Ungroup/flatten the batches for easy loading of the files.
+        test_dataset = test_dataset.unbatch()
+
+        # Convert filenames to actual image tensors.
+        net_input_size = (args.net_input_height, args.net_input_width)
+        pre_crop_size = (args.pre_crop_height, args.pre_crop_width)
+        test_dataset = test_dataset.map(
+            lambda fid, pid: common.fid_to_image(
+                fid, pid, image_root=args.image_root,
+                image_size=pre_crop_size if args.crop_augment else net_input_size),
+            num_parallel_calls=args.loading_threads)
+
+        # Group it back into PK batches.
+        test_batch_size = args.batch_p * args.batch_k
+        test_dataset = test_dataset.batch(test_batch_size)
+
+        # Overlap producing and consuming for parallelism.
+        test_dataset = test_dataset.prefetch(1)
+
+        # Since we repeat the data infinitely, we only need a one-shot iterator.
+        test_images, test_fids, test_pids = tf.compat.v1.data.make_one_shot_iterator(test_dataset).get_next()
 
     # Create the model and an embedding head.
     model = import_module('nets.' + args.model_name)
@@ -286,7 +334,7 @@ def main():
     # Feed the image through the model. The returned `body_prefix` will be used
     # further down to load the pre-trained weights for all variables with this
     # prefix.
-    endpoints, body_prefix = model.endpoints(images, is_training=True)
+    endpoints, body_prefix = model.endpoints(images_ph, is_training=True)
     with tf.compat.v1.name_scope('head'):
         endpoints = head.head(endpoints, args.embedding_dim, is_training=True)
 
@@ -295,7 +343,7 @@ def main():
     # 2. For each anchor along the first dimension, compute its loss.
     dists = loss.cdist(endpoints['emb'], endpoints['emb'], metric=args.metric)
     losses, train_top1, prec_at_k, _, neg_dists, pos_dists = loss.LOSS_CHOICES[args.loss](
-        dists, pids, args.margin, batch_precision_at_k=args.batch_k - 1)
+        dists, pids_ph, args.margin, batch_precision_at_k=args.batch_k - 1)
 
     # Count the number of active entries, and compute the total batch loss.
     num_active = tf.reduce_sum(input_tensor=tf.cast(tf.greater(losses, 1e-5), tf.float32))
@@ -326,6 +374,16 @@ def main():
         log_fids = lb.create_or_resize_dat(
             os.path.join(args.experiment_root, 'fids'),
             dtype='S' + str(max_fid_len), shape=(args.train_iterations, batch_size))
+        if test_images:
+            log_val_embs = lb.create_or_resize_dat(
+                os.path.join(args.experiment_root, 'val_embeddings'),
+                dtype=np.float32, shape=(args.train_iterations, batch_size, args.embedding_dim))
+            log_val_loss = lb.create_or_resize_dat(
+                os.path.join(args.experiment_root, 'val_losses'),
+                dtype=np.float32, shape=(args.train_iterations, batch_size))
+            log_val_fids = lb.create_or_resize_dat(
+                os.path.join(args.experiment_root, 'val_fids'),
+                dtype='S' + str(max_fid_len), shape=(args.train_iterations, batch_size))
 
     # These are collected here before we add the optimizer, because depending
     # on the optimizer, it might add extra slots, which are also global
@@ -343,7 +401,7 @@ def main():
             args.train_iterations - args.decay_start_iteration, 0.001)
     else:
         learning_rate = args.learning_rate
-    #tf.compat.v1.summary.scalar('learning_rate', learning_rate)
+    tf.compat.v1.summary.scalar('learning_rate', learning_rate)
     optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate)
     # Feel free to try others!
     # optimizer = tf.train.AdadeltaOptimizer(learning_rate)
@@ -376,6 +434,7 @@ def main():
 
         merged_summary = tf.compat.v1.summary.merge_all()
         summary_writer = tf.compat.v1.summary.FileWriter(os.path.join(args.experiment_root, 'train'), sess.graph)
+        test_summary_writer = tf.compat.v1.summary.FileWriter(os.path.join(args.experiment_root, 'validation'), sess.graph)
 
         start_step = sess.run(global_step)
         log.info('Starting training from iteration {}.'.format(start_step))
@@ -388,8 +447,16 @@ def main():
 
                 # Compute gradients, update weights, store logs!
                 start_time = time.time()
+                images_val, pids_val = sess.run([images, pids])
                 _, summary, step, b_prec_at_k, b_embs, b_loss, b_fids = \
-                    sess.run([train_op, merged_summary, global_step, prec_at_k, endpoints['emb'], losses, fids])
+                    sess.run([train_op, merged_summary, global_step, prec_at_k, endpoints['emb'], losses, fids], {images_ph: images_val, pids_ph: pids_val})
+
+                test_summary = None
+                if test_images != None:
+                    images_val, pids_val = sess.run([test_images, test_pids])
+                    test_summary, test_b_prec_at_k, test_b_embs, test_b_loss, test_b_fids = \
+                        sess.run([merged_summary, prec_at_k, endpoints['emb'], losses, test_fids], {images_ph: images_val, pids_ph: pids_val})
+
                 elapsed_time = time.time() - start_time
 
                 # Compute the iteration speed and add it to the summary.
@@ -398,21 +465,41 @@ def main():
                 summary2.value.add(tag='secs_per_iter', simple_value=elapsed_time)
                 summary_writer.add_summary(summary2, step)
                 summary_writer.add_summary(summary, step)
+                if test_summary != None:
+                    test_summary_writer.add_summary(test_summary, step)
 
                 if args.detailed_logs:
                     log_embs[i], log_loss[i], log_fids[i] = b_embs, b_loss, b_fids
+                    if test_summary:
+                        log_val_embs[i], log_val_loss[i], log_val_fids[i] = test_b_embs, test_b_loss, test_b_fids
 
                 # Do a huge print out of the current progress.
                 seconds_todo = (args.train_iterations - step) * elapsed_time
-                log.info('iter:{:6d}, loss min|avg|max: {:.3f}|{:.3f}|{:6.3f}, '
-                            'batch-p@{}: {:.2%}, ETA: {} ({:.2f}s/it)'.format(
-                                step,
-                                float(np.min(b_loss)),
-                                float(np.mean(b_loss)),
-                                float(np.max(b_loss)),
-                                args.batch_k - 1, float(b_prec_at_k),
-                                timedelta(seconds=int(seconds_todo)),
-                                elapsed_time))
+                if test_summary:
+                    log.info('iter:{:6d}, loss min|avg|max: {:.3f}|{:.3f}|{:.3f}, '
+                             'batch-p@{}: {:.2%}, val_loss min|avg|max: {:.3f}|{:.3f}|{:.3f}, '
+                             'batch-p@{}: {:.2%}, ETA: {} ({:.2f}s/it)'.format(
+                                 step,
+                                 float(np.min(b_loss)),
+                                 float(np.mean(b_loss)),
+                                 float(np.max(b_loss)),
+                                 args.batch_k - 1, float(b_prec_at_k),
+                                 float(np.min(test_b_loss)),
+                                 float(np.mean(test_b_loss)),
+                                 float(np.max(test_b_loss)),
+                                 args.batch_k - 1, float(test_b_prec_at_k),
+                                 timedelta(seconds=int(seconds_todo)),
+                                 elapsed_time))
+                else:
+                    log.info('iter:{:6d}, loss min|avg|max: {:.3f}|{:.3f}|{:6.3f}, '
+                             'batch-p@{}: {:.2%}, ETA: {} ({:.2f}s/it)'.format(
+                                 step,
+                                 float(np.min(b_loss)),
+                                 float(np.mean(b_loss)),
+                                 float(np.max(b_loss)),
+                                 args.batch_k - 1, float(b_prec_at_k),
+                                 timedelta(seconds=int(seconds_todo)),
+                                 elapsed_time))
                 sys.stdout.flush()
                 sys.stderr.flush()
 
