@@ -87,8 +87,8 @@ def test():
 
 # Compile the model
 lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
-    0.001,
-    decay_steps=500,
+    0.00001,
+    decay_steps=5000,
     decay_rate=0.1,
     staircase=True
 )
