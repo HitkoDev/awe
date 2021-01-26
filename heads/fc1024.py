@@ -14,8 +14,8 @@ def head(endpoints, embedding_dim, is_training):
         })
 
     endpoints['emb_raw'] = slim.fully_connected(
-        tf.nn.dropout(endpoints['head_output'], 0.8), embedding_dim, activation_fn=None,
+        endpoints['head_output'], embedding_dim, activation_fn=None,
         weights_initializer=tf.compat.v1.orthogonal_initializer(), scope='emb')
-    endpoints['emb'] = tf.identity(endpoints['emb_raw'], name="out_emb")
+    endpoints['emb'] = tf.identity(tf.nn.dropout(endpoints['emb_raw'], 0.8), name="out_emb")
 
     return endpoints
