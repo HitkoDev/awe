@@ -2,6 +2,7 @@ import csv
 import json
 import os
 from os import path
+import shutil
 
 import cv2
 import numpy as np
@@ -16,12 +17,15 @@ with open('awe-translation.csv', 'r') as f:
 map = {}
 train_rows = []
 test_rows = []
+nm_train_rows = []
+nm_test_rows = []
 for x in os.listdir('AWEDataset'):
     if os.path.isdir(os.path.join('AWEDataset', x)):
         with open(os.path.join('AWEDataset', x, 'annotations.json'), 'r') as f:
             d = json.load(f)
             for k in d['data']:
                 i = d['data'][k]
+                img3 = os.path.join('AWEDataset', x, d['data'][k]['file'])
 
                 m = "{}/{}".format(x, i['file'])
                 s = images[m]
@@ -71,11 +75,18 @@ for x in os.listdir('AWEDataset'):
                 mask_out = img * np.stack([m, m, m], axis=2)
                 out = mask_out[y1:y2, x1:x2]
                 cv2.imwrite(target + '.png', out)
+                tg = target.replace('converted', 'nomask')
+                if not os.path.exists(os.path.dirname(tg)):
+                    os.makedirs(os.path.dirname(tg))
+                shutil.copy(img3, tg + '.png')
+
                 cls = '{}_{}'.format(x, lr)
                 if dir == 'test':
                     test_rows.append([cls, (target + '.png').replace('\\', '/')])
+                    nm_test_rows.append([cls, (tg + '.png').replace('\\', '/')])
                 else:
                     train_rows.append([cls, (target + '.png').replace('\\', '/')])
+                    nm_train_rows.append([cls, (tg + '.png').replace('\\', '/')])
 
 with open('test.csv', mode='w+', newline='') as f:
     writer = csv.writer(f)
@@ -84,4 +95,26 @@ with open('test.csv', mode='w+', newline='') as f:
 with open('train.csv', mode='w+', newline='') as f:
     writer = csv.writer(f)
     for row in train_rows:
+        writer.writerow(row)
+
+with open('nm_test.csv', mode='w+', newline='') as f:
+    writer = csv.writer(f)
+    for row in nm_test_rows:
+        writer.writerow(row)
+with open('nm_train.csv', mode='w+', newline='') as f:
+    writer = csv.writer(f)
+    for row in nm_train_rows:
+        writer.writerow(row)
+
+with open('cb_test.csv', mode='w+', newline='') as f:
+    writer = csv.writer(f)
+    for row in test_rows:
+        writer.writerow(row)
+    for row in nm_test_rows:
+        writer.writerow(row)
+with open('cb_train.csv', mode='w+', newline='') as f:
+    writer = csv.writer(f)
+    for row in train_rows:
+        writer.writerow(row)
+    for row in nm_train_rows:
         writer.writerow(row)
