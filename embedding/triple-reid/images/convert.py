@@ -112,6 +112,10 @@ with open('cb_test.csv', mode='w+', newline='') as f:
         writer.writerow(row)
     for row in nm_test_rows:
         writer.writerow(row)
+    for row in train_rows:
+        writer.writerow(row)
+    for row in nm_train_rows:
+        writer.writerow(row)
 with open('cb_train.csv', mode='w+', newline='') as f:
     writer = csv.writer(f)
     for row in train_rows:

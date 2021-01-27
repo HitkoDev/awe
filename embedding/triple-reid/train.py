@@ -19,7 +19,7 @@ import loss
 from heads import HEAD_CHOICES
 from nets import NET_CHOICES
 
-# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 tf.compat.v1.disable_eager_execution()
 

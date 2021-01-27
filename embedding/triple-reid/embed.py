@@ -12,6 +12,10 @@ import tensorflow as tf
 from aggregators import AGGREGATORS
 import common
 
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
+tf.compat.v1.disable_eager_execution()
+
 parser = ArgumentParser(description='Embed a dataset using a trained network.')
 
 # Required
@@ -75,7 +79,7 @@ parser.add_argument(
 def flip_augment(image, fid, pid):
     """ Returns both the original and the horizontal flip of an image. """
     images = tf.stack([image, tf.reverse(image, [1])])
-    return images, tf.stack([fid]*2), tf.stack([pid]*2)
+    return images, tf.stack([fid] * 2), tf.stack([pid] * 2)
 
 
 def five_crops(image, crop_size):
@@ -87,10 +91,10 @@ def five_crops(image, crop_size):
     with tf.control_dependencies([assert_size]):
         top_left = tf.math.floordiv(crop_margin, 2)
         bottom_right = tf.add(top_left, crop_size)
-    center       = image[top_left[0]:bottom_right[0], top_left[1]:bottom_right[1]]
-    top_left     = image[:-crop_margin[0], :-crop_margin[1]]
-    top_right    = image[:-crop_margin[0], crop_margin[1]:]
-    bottom_left  = image[crop_margin[0]:, :-crop_margin[1]]
+    center = image[top_left[0]:bottom_right[0], top_left[1]:bottom_right[1]]
+    top_left = image[:-crop_margin[0], :-crop_margin[1]]
+    top_right = image[:-crop_margin[0], crop_margin[1]:]
+    bottom_left = image[crop_margin[0]:, :-crop_margin[1]]
     bottom_right = image[crop_margin[0]:, crop_margin[1]:]
     return center, top_left, top_right, bottom_left, bottom_right
 
@@ -170,13 +174,13 @@ def main():
 
     if args.crop_augment == 'center':
         dataset = dataset.map(lambda im, fid, pid:
-            (five_crops(im, net_input_size)[0], fid, pid))
+                              (five_crops(im, net_input_size)[0], fid, pid))
         modifiers = [o + '_center' for o in modifiers]
     elif args.crop_augment == 'five':
         dataset = dataset.map(lambda im, fid, pid: (
             tf.stack(five_crops(im, net_input_size)),
-            tf.stack([fid]*5),
-            tf.stack([pid]*5)))
+            tf.stack([fid] * 5),
+            tf.stack([pid] * 5)))
         dataset = dataset.unbatch()
         modifiers = [o + m for o in modifiers for m in [
             '_center', '_top_left', '_top_right', '_bottom_left', '_bottom_right']]
@@ -192,12 +196,13 @@ def main():
     dataset = dataset.prefetch(1)
 
     images, _, _ = tf.compat.v1.data.make_one_shot_iterator(dataset).get_next()
+    images_ph = tf.compat.v1.placeholder(images.dtype, shape=images.get_shape())
 
     # Create the model and an embedding head.
     model = import_module('nets.' + args.model_name)
     head = import_module('heads.' + args.head_name)
 
-    endpoints, body_prefix = model.endpoints(images, is_training=False)
+    endpoints, body_prefix = model.endpoints(images_ph, is_training=False)
     with tf.compat.v1.name_scope('head'):
         endpoints = head.head(endpoints, args.embedding_dim, is_training=False)
 
@@ -216,9 +221,10 @@ def main():
             (len(data_fids) * len(modifiers), args.embedding_dim), np.float32)
         for start_idx in count(step=args.batch_size):
             try:
-                emb = sess.run(endpoints['emb'])
+                images_val = sess.run(images)
+                emb = sess.run(endpoints['emb'], {images_ph: images_val})
                 print('\rEmbedded batch {}-{}/{}'.format(
-                        start_idx, start_idx + len(emb), len(emb_storage)),
+                    start_idx, start_idx + len(emb), len(emb_storage)),
                     flush=True, end='')
                 emb_storage[start_idx:start_idx + len(emb)] = emb
             except tf.errors.OutOfRangeError:
@@ -231,7 +237,7 @@ def main():
         if len(modifiers) > 1:
             # Pull out the augmentations into a separate first dimension.
             emb_storage = emb_storage.reshape(len(data_fids), len(modifiers), -1)
-            emb_storage = emb_storage.transpose((1,0,2))  # (Aug,FID,128D)
+            emb_storage = emb_storage.transpose((1, 0, 2))  # (Aug,FID,128D)
 
             # Store the embedding of all individual variants too.
             emb_dataset = f_out.create_dataset('emb_aug', data=emb_storage)

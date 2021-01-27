@@ -1,18 +1,21 @@
 #!/usr/bin/env python3
+import json
+import os
 from argparse import ArgumentParser, FileType
 from importlib import import_module
 from itertools import count
-import os
 
 import h5py
-import json
 import numpy as np
-from sklearn.metrics import average_precision_score
 import tensorflow as tf
+from sklearn.metrics import average_precision_score
 
 import common
 import loss
 
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
+tf.compat.v1.disable_eager_execution()
 
 parser = ArgumentParser(description='Evaluate a ReID embedding.')
 
