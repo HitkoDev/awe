@@ -1,6 +1,4 @@
-images/AWEForSegmentation/**/*.png
-images/AWEForSegmentation/**/*.npy
-images/AWE/
+images/AWE*
 .eggs
 TrainingOutput
 build
