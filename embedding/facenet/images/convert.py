@@ -21,6 +21,8 @@ for x in os.listdir('AWEDataset'):
             d = json.load(f)
             for k in d['data']:
                 i = d['data'][k]
+                img3 = os.path.join('AWEDataset', x, d['data'][k]['file'])
+
                 m = "{}/{}".format(x, i['file'])
                 s = images[m]
                 lr = i['d'].upper()
@@ -74,3 +76,8 @@ for x in os.listdir('AWEDataset'):
                     mask_out = img * np.stack([m, m, m], axis=2)
                     out = mask_out[y1:y2, x1:x2]
                     cv2.imwrite(target + '.png', out)
+                
+                tg = target.replace('converted', 'nomask')
+                if not os.path.exists(os.path.dirname(tg)):
+                    os.makedirs(os.path.dirname(tg))
+                shutil.copy(img3, tg + '.png')

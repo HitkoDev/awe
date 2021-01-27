@@ -45,7 +45,7 @@ import facenet
 import lfw
 from awe_dataset import AWEDataset
 
-# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 
 def main(args):
