@@ -16,7 +16,7 @@ flags.DEFINE_integer('train_iter', 300, 'Total training iter')
 flags.DEFINE_integer('image_size', 160, 'Image size')
 flags.DEFINE_string('data_dir', './images/converted', 'Dataset dir')
 
-# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 tf.compat.v1.disable_eager_execution()
 
