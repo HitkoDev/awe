@@ -1,0 +1,1 @@
+env LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libtcmalloc.so.4 python train.py --train_set images/train.csv --test_set ./images/test.csv --image_root ./images --experiment_root ./awemark2 --batch_p 50 --flip_augment --rotate_augment --learning_rate 0.000001 --initial_checkpoint ./images/resnet_v1_50.ckpt

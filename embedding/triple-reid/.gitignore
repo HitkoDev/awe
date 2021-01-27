@@ -1,0 +1,6 @@
+__pycache__
+*.pyc
+awe
+images/*
+!images/convert.py
+!images/README.md
