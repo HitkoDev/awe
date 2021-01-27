@@ -72,9 +72,15 @@ for x in os.listdir('AWEDataset'):
                 x2 = max([p[0][0] for p in c if p[0][0] >= 0]) + 1
                 s = mask[y1:y2, x1:x2, 1] > 0
                 m[y1:y2, x1:x2] = s
-                mask_out = img * np.stack([m, m, m], axis=2)
-                out = mask_out[y1:y2, x1:x2]
-                cv2.imwrite(target + '.png', out)
+                if dir == 'train':
+                    shutil.copy(path, target + '.png')
+                    with open(mask_path, 'wb+') as file:
+                        np.save(file, m)
+                else:
+                    mask_out = img * np.stack([m, m, m], axis=2)
+                    out = mask_out[y1:y2, x1:x2]
+                    cv2.imwrite(target + '.png', out)
+
                 tg = target.replace('converted', 'nomask')
                 if not os.path.exists(os.path.dirname(tg)):
                     os.makedirs(os.path.dirname(tg))

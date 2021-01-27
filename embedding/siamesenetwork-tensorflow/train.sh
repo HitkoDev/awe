@@ -1,3 +1,2 @@
-rm img/*
-rm -rf train.log/
-python train.py
+#!/bin/bash
+python im2.py

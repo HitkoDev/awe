@@ -9,3 +9,5 @@ __pycache__
 *.log
 *.out
 logs
+images
+recognition/models

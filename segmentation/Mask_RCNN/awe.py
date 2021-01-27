@@ -363,6 +363,9 @@ def report(model):
             'total': total
         }, json_file)
 
+def convert(model):
+    model.keras_model.save('converted')
+
 
 ############################################################
 #  Training
@@ -465,6 +468,8 @@ if __name__ == '__main__':
                                 video_path=args.video)
     elif args.command == "report":
         report(model)
+    elif args.command == "convert":
+        convert(model)
     else:
         print("'{}' is not recognized. "
               "Use 'train' or 'splash'".format(args.command))

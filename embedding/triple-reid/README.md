@@ -3,29 +3,31 @@
 Code for reproducing the results of our [In Defense of the Triplet Loss for Person Re-Identification](https://arxiv.org/abs/1703.07737) paper.
 
 We provide the following things:
-- The exact pre-trained weights for the TriNet model as used in the paper, including some rudimentary example code for using it to compute embeddings.
-  See section [Pretrained models](#pretrained-models).
-- A clean re-implementation of the training code that can be used for training your own models/data.
-  See section [Training your own models](#training-your-own-models).
-- A script for evaluation which computes the CMC and mAP of embeddings in an HDF5 ("new .mat") file.
-  See section [Evaluating embeddings](#evaluating-embeddings).
-- A list of [independent re-implementations](#independent-re-implementations).
+
+-   The exact pre-trained weights for the TriNet model as used in the paper, including some rudimentary example code for using it to compute embeddings.
+    See section [Pretrained models](#pretrained-models).
+-   A clean re-implementation of the training code that can be used for training your own models/data.
+    See section [Training your own models](#training-your-own-models).
+-   A script for evaluation which computes the CMC and mAP of embeddings in an HDF5 ("new .mat") file.
+    See section [Evaluating embeddings](#evaluating-embeddings).
+-   A list of [independent re-implementations](#independent-re-implementations).
 
 If you use any of the provided code, please cite:
-```
-@article{HermansBeyer2017Arxiv,
-  title       = {{In Defense of the Triplet Loss for Person Re-Identification}},
-  author      = {Hermans*, Alexander and Beyer*, Lucas and Leibe, Bastian},
-  journal     = {arXiv preprint arXiv:1703.07737},
-  year        = {2017}
-}
-```
 
+    @article{HermansBeyer2017Arxiv,
+      title       = {{In Defense of the Triplet Loss for Person Re-Identification}},
+      author      = {Hermans*, Alexander and Beyer*, Lucas and Leibe, Bastian},
+      journal     = {arXiv preprint arXiv:1703.07737},
+      year        = {2017}
+    }
+
+### AWE
+
+Original code has been modified to work with Tensorflow 2.x, and to add validation using test data during training. Training on AWE has been done using `train.sh`.
 
 # Pretrained TensorFlow models
 
 For convenience, we provide the pretrained weights for our TriNet TensorFlow model, trained on Market-1501 using the code from this repository and the settings form our paper. The TensorFlow checkpoint can be downloaded in the [release section](https://github.com/VisualComputingInstitute/triplet-reid/releases/tag/250eb1).
-
 
 # Pretrained Theano models
 
@@ -35,41 +37,34 @@ and
 [Lasagne](http://lasagne.readthedocs.io/en/latest/user/installation.html).
 
 As a first step, download either of these pre-trained models:
-- [TriNet trained on MARS](https://omnomnom.vision.rwth-aachen.de/data/trinet-mars.npz) (md5sum: `72fafa2ee9aa3765f038d06e8dd8ef4b`)
-- [TriNet trained on Market1501](https://omnomnom.vision.rwth-aachen.de/data/trinet-market1501.npz) (md5sum: `5353f95d1489536129ec14638aded3c7`)
+
+-   [TriNet trained on MARS](https://omnomnom.vision.rwth-aachen.de/data/trinet-mars.npz) (md5sum: `72fafa2ee9aa3765f038d06e8dd8ef4b`)
+-   [TriNet trained on Market1501](https://omnomnom.vision.rwth-aachen.de/data/trinet-market1501.npz) (md5sum: `5353f95d1489536129ec14638aded3c7`)
 
 Next, create a file (`files.txt`) which contains the full path to the image files you want to embed, one filename per line, like so:
 
-```
-/path/to/file1.png
-/path/to/file2.jpg
-```
+    /path/to/file1.png
+    /path/to/file2.jpg
 
 Finally, run the `trinet_embed.py` script, passing both the above file and the pretrained model file you want to use, like so:
 
-```
-python trinet_embed.py files.txt /path/to/trinet-mars.npz
-```
+    python trinet_embed.py files.txt /path/to/trinet-mars.npz
 
 And it will output one comma-separated line for each file, containing the filename followed by the embedding, like so:
 
-```
-/path/to/file1.png,-1.234,5.678,...
-/path/to/file2.jpg,9.876,-1.234,...
-```
+    /path/to/file1.png,-1.234,5.678,...
+    /path/to/file2.jpg,9.876,-1.234,...
 
 You could for example redirect it to a file for further processing:
 
-```
-python trinet_embed.py files.txt /path/to/trinet-market1501.npz >embeddings.csv
-```
+    python trinet_embed.py files.txt /path/to/trinet-market1501.npz >embeddings.csv
 
 You can now do meaningful work by comparing these embeddings using the Euclidean distance, for example, try some K-means clustering!
 
 A couple notes:
-- The script depends on [Theano](http://deeplearning.net/software/theano/install.html), [Lasagne](http://lasagne.readthedocs.io/en/latest/user/installation.html) and [OpenCV Python](http://opencv.org/) (`pip install opencv-python`) being correctly installed.
-- The input files should be crops of a full person standing upright, and they will be resized to `288x144` before being passed to the network.
 
+-   The script depends on [Theano](http://deeplearning.net/software/theano/install.html), [Lasagne](http://lasagne.readthedocs.io/en/latest/user/installation.html) and [OpenCV Python](http://opencv.org/) (`pip install opencv-python`) being correctly installed.
+-   The input files should be crops of a full person standing upright, and they will be resized to `288x144` before being passed to the network.
 
 # Training your own models
 
@@ -78,8 +73,8 @@ This is not the code that was used in the paper (which became a unusable mess),
 but rather a clean re-implementation of it in [TensorFlow](https://www.tensorflow.org/),
 achieving about the same performance.
 
-- **This repository requires at least version 1.4 of TensorFlow.**
-- **The TensorFlow code is Python 3 only and won't work in Python 2!**
+-   **This repository requires at least version 1.4 of TensorFlow.**
+-   **The TensorFlow code is Python 3 only and won't work in Python 2!**
 
 :boom: :fire: :exclamation: **If you train on a very different dataset, don't forget to tune the learning-rate and schedule** :exclamation: :fire: :boom:
 
@@ -91,14 +86,12 @@ CARS196, for example, is much smaller and thus needs a much shorter schedule.
 
 A dataset consists of two things:
 
-1. An `image_root` folder which contains all images, possibly in sub-folders.
-2. A dataset `.csv` file describing the dataset.
+1.  An `image_root` folder which contains all images, possibly in sub-folders.
+2.  A dataset `.csv` file describing the dataset.
 
 To create a dataset, you simply create a new `.csv` file for it of the following form:
 
-```
-identity,relative_path/to/image.jpg
-```
+    identity,relative_path/to/image.jpg
 
 Where the `identity` is also often called `PID` (`P`erson `ID`entity) and corresponds to the "class name",
 it can be any arbitrary string, but should be the same for images belonging to the same identity.
@@ -110,12 +103,10 @@ The `relative_path/to/image.jpg` is relative to aforementioned `image_root`.
 Given the dataset file, and the `image_root`, you can already train a model.
 The minimal way of training a model is to just call `train.py` in the following way:
 
-```
-python train.py \
-    --train_set data/market1501_train.csv \
-    --image_root /absolute/image/root \
-    --experiment_root ~/experiments/my_experiment
-```
+    python train.py \
+        --train_set data/market1501_train.csv \
+        --image_root /absolute/image/root \
+        --experiment_root ~/experiments/my_experiment
 
 This will start training with all default parameters.
 We recommend writing a script file similar to `market1501_train.sh` where you define all kinds of parameters,
@@ -150,9 +141,7 @@ to the training process; it will finish the current batch, store the model and o
 and then terminate cleanly.
 Because of the `args.json` file, you can later resume that run simply by running:
 
-```
-python train.py --experiment_root ~/experiments/my_experiment --resume
-```
+    python train.py --experiment_root ~/experiments/my_experiment --resume
 
 The last checkpoint is determined automatically by TensorFlow using the contents of the `checkpoint` file.
 
@@ -161,9 +150,7 @@ The last checkpoint is determined automatically by TensorFlow using the contents
 For some reason, current TensorFlow is known to have inconsistent performance and can sometimes become very slow.
 The current only known workaround is to install google's performance-tools and preload tcmalloc:
 
-```
-env LD_PRELOAD=/usr/lib/libtcmalloc_minimal.so.4 python train.py ...
-```
+    env LD_PRELOAD=/usr/lib/libtcmalloc_minimal.so.4 python train.py ...
 
 This fixes the issues for us most of the time, but not always.
 If you know more, please open an issue and let us know!
@@ -193,12 +180,10 @@ This can be done with the `embed.py` script, which can also serve as inspiration
 
 The following invocation computes the embeddings of the Market1501 query set using some network:
 
-```
-python embed.py \
-    --experiment_root ~/experiments/my_experiment \
-    --dataset data/market1501_query.csv \
-    --filename market1501_query_embeddings.h5
-```
+    python embed.py \
+        --experiment_root ~/experiments/my_experiment \
+        --dataset data/market1501_query.csv \
+        --filename market1501_query_embeddings.h5
 
 The embeddings will be written into the HDF5 file at `~/experiments/my_experiment/test_embeddings.h5` as dataset `embs`.
 Most relevant settings are automatically loaded from the experiment's `args.json` file, but some can be overruled on the commandline.
@@ -209,15 +194,13 @@ which are usually more robust and perform better in downstream tasks.
 
 The following is an example that computes extensively augmented embeddings:
 
-```
-python embed.py \
-    --experiment_root ~/experiments/my_experiment \
-    --dataset data/market1501_query.csv \
-    --filename market1501_query_embeddings_augmented.h5 \
-    --flip_augment \
-    --crop_augment five \
-    --aggregator mean
-```
+    python embed.py \
+        --experiment_root ~/experiments/my_experiment \
+        --dataset data/market1501_query.csv \
+        --filename market1501_query_embeddings_augmented.h5 \
+        --flip_augment \
+        --crop_augment five \
+        --aggregator mean
 
 This will take 10 times longer, because we perform a total of 10 augmentations per image (2 flips times 5 crops).
 All individual embeddings will also be stored in the `.h5` file, thus the disk-space also increases.
@@ -225,7 +208,7 @@ One question is how the embeddings of the various augmentations should be combin
 When training using the euclidean metric in the loss, simply taking the mean is what makes most sense,
 and also what the above invocation does through `--aggregator mean`.
 But if one for example trains a normalized embedding (by using a `_normalize` head for instance),
-The embeddings *must* be re-normalized after averaging, and so one should use `--aggregator normalized_mean`.
+The embeddings _must_ be re-normalized after averaging, and so one should use `--aggregator normalized_mean`.
 The final combined embedding is again stored as `embs` in the `.h5` file, as usual.
 
 # Evaluating embeddings
@@ -242,16 +225,14 @@ We verified that it produces the exact same results as the reference implementat
 
 The following is an example of evaluating a Market1501 model, notice it takes a lot of parameters :smile::
 
-```
-./evaluate.py \
-    --excluder market1501 \
-    --query_dataset data/market1501_query.csv \
-    --query_embeddings ~/experiments/my_experiment/market1501_query_embeddings.h5 \
-    --gallery_dataset data/market1501_test.csv \
-    --gallery_embeddings ~/experiments/my_experiment/market1501_test_embeddings.h5 \
-    --metric euclidean \
-    --filename ~/experiments/my_experiment/market1501_evaluation.json
-```
+    ./evaluate.py \
+        --excluder market1501 \
+        --query_dataset data/market1501_query.csv \
+        --query_embeddings ~/experiments/my_experiment/market1501_query_embeddings.h5 \
+        --gallery_dataset data/market1501_test.csv \
+        --gallery_embeddings ~/experiments/my_experiment/market1501_test_embeddings.h5 \
+        --metric euclidean \
+        --filename ~/experiments/my_experiment/market1501_evaluation.json
 
 The only thing that really needs explaining here is the `excluder`.
 For some datasets, especially multi-camera ones,
@@ -281,11 +262,11 @@ This can be used by providing the `--use_market_ap` flag when running `evaluate.
 These are the independent re-implementations of our paper that we are aware of,
 please send a pull-request to add more:
 
-- [Open-ReID](https://github.com/Cysu/open-reid) (PyTorch, MIT license)
-- https://github.com/huanghoujing/person-reid-triplet-loss-baseline (PyTorch, no license)
-- https://github.com/CoinCheung/triplet-reid-pytorch (PyTorch, Apache 2.0 license)
+-   [Open-ReID](https://github.com/Cysu/open-reid) (PyTorch, MIT license)
+-   <https://github.com/huanghoujing/person-reid-triplet-loss-baseline> (PyTorch, no license)
+-   <https://github.com/CoinCheung/triplet-reid-pytorch> (PyTorch, Apache 2.0 license)
 
 Not technically independent re-implementation, but open-sourced works which use this code in some way that we are aware of, and again pull-requests to add more are welcome:
 
-- https://github.com/VisualComputingInstitute/towards-reid-tracking is our own work exploring the integration of ReID and tracking (Code for the paper [Towards a Principled Integration of Multi-Camera Re-Identification and Tracking through Optimal Bayes Filters](https://arxiv.org/abs/1705.04608))
-- https://github.com/cftang0827/human_recognition is a simple wrapper, combining this with an OpenCV detector. See also [#47](https://github.com/VisualComputingInstitute/triplet-reid/issues/47)
+-   <https://github.com/VisualComputingInstitute/towards-reid-tracking> is our own work exploring the integration of ReID and tracking (Code for the paper [Towards a Principled Integration of Multi-Camera Re-Identification and Tracking through Optimal Bayes Filters](https://arxiv.org/abs/1705.04608))
+-   <https://github.com/cftang0827/human_recognition> is a simple wrapper, combining this with an OpenCV detector. See also [#47](https://github.com/VisualComputingInstitute/triplet-reid/issues/47)
