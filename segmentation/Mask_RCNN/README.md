@@ -12,7 +12,7 @@ The repository includes:
 
 -   Download AWE dataset and extract it into `images/AWEForSegmentation`
 -   Install dependencies: `pip install -r requirements.txt`
--   **Train model:** `python awe.py train --dataset images/AWEForSegmentation --weights [awe.h5, random, imagenet, coco]`
+-   **Train model:** `python awe.py train --dataset ../../images/AWEForSegmentation --weights [awe.h5, random, imagenet, coco]`
 -   **Detect ears:** `python awe.py splash --weights awe.h5 --image [test.png]`
 
 ## Credits
