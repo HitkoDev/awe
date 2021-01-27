@@ -1,0 +1,13 @@
+images/AWEForSegmentation/**/*.png
+images/AWEForSegmentation/**/*.npy
+images/AWE/
+.eggs
+TrainingOutput
+build
+__pycache__
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+logs
