@@ -46,7 +46,7 @@ import facenet
 import lfw
 from awe_dataset import AWEDataset
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 
 def main(args):
@@ -317,7 +317,7 @@ def train(args, sess, dataset, epoch, image_paths_placeholder, labels_placeholde
                 y2 += 1
                 mask_out = image * np.stack([mask, mask, mask], axis=2)
                 out = mask_out[y1:y2, x1:x2]
-                out = cv2.resize(out, dsize=(args.image_size, args.image_size))
+                out = cv2.resize(out, dsize=(args.image_size, args.image_size)) / 255.
                 #cv2.imwrite('verify.png', out)
                 imgs.append(out)
             images_array.append(imgs)
@@ -474,7 +474,7 @@ def evaluate(sess, image_paths, embeddings, labels_batch, image_paths_placeholde
             if len(image.shape) == 2:
                 image = np.stack([image, image, image], axis=2)
             image = image[:, :, 0:3]
-            out = cv2.resize(image, dsize=(args.image_size, args.image_size))
+            out = cv2.resize(image, dsize=(args.image_size, args.image_size)) / 255.
             imgs.append(out)
         images_array.append(imgs)
     images_array = np.array(images_array)
