@@ -36,6 +36,7 @@ from datetime import datetime
 import cv2
 import h5py
 import numpy as np
+import skimage.io
 import tensorflow as tf
 import tf_slim as slim
 from tensorflow.python.framework import ops
@@ -345,8 +346,11 @@ def train(args, sess, epoch, image_list, label_list, index_dequeue_op, enqueue_o
     for p in image_paths_array:
         imgs = []
         for path in p:
-            image = cv2.imread(path)
-            w, h, c = image.shape
+            image = np.array(skimage.io.imread(path))
+            if len(image.shape) == 2:
+                image = np.stack([image, image, image], axis=2)
+            image = image[:, :, 0:3]
+            w, h = image.shape
             r = math.ceil((w ** 2 + h ** 2) ** 0.5)
             pw = math.ceil((r - w) / 2)
             ph = math.ceil((r - h) / 2)
@@ -464,7 +468,10 @@ def validate(args, sess, epoch, image_list, label_list, enqueue_op, image_paths_
     for p in image_paths_array:
         imgs = []
         for path in p:
-            image = cv2.imread(path)
+            image = np.array(skimage.io.imread(path))
+            if len(image.shape) == 2:
+                image = np.stack([image, image, image], axis=2)
+            image = image[:, :, 0:3]
             out = cv2.resize(image, dsize=(args.image_size, args.image_size))
             imgs.append(out)
         images_array.append(imgs)

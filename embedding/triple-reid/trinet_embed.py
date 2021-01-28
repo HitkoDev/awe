@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 from __future__ import print_function
-import numpy as np
-import cv2
+
 import pickle
 import sys
 
+import cv2
+import numpy as np
 
 if len(sys.argv) != 3:
     print("Usage: {} IMAGE_LIST_FILE MODEL_WEIGHT_FILE".format(sys.argv[0]))
@@ -18,17 +19,15 @@ weight_fname = sys.argv[2]
 
 # Setup the pretrained ResNet
 
+import lasagne
 #This is based on the Lasagne ResNet-50 example with slight modifications to allow for different input sizes.
 #The original can be found at: https://github.com/Lasagne/Recipes/blob/master/examples/resnet50/ImageNet%20Pretrained%20Network%20(ResNet-50).ipynb
 import theano
-import lasagne
-from lasagne.layers import InputLayer
-from lasagne.layers import Conv2DLayer as ConvLayer
 from lasagne.layers import BatchNormLayer
+from lasagne.layers import Conv2DLayer as ConvLayer
+from lasagne.layers import (DenseLayer, ElemwiseSumLayer, InputLayer,
+                            NonlinearityLayer)
 from lasagne.layers import Pool2DLayer as PoolLayer
-from lasagne.layers import NonlinearityLayer
-from lasagne.layers import ElemwiseSumLayer
-from lasagne.layers import DenseLayer
 from lasagne.nonlinearities import rectify, softmax
 
 

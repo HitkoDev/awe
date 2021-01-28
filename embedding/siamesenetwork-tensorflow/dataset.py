@@ -6,6 +6,7 @@ import random
 import cv2
 import imgaug.augmenters as iaa
 import numpy as np
+import skimage.draw
 
 augmentation = iaa.Sequential([iaa.geometric.ShearX(shear=(-20, 20)), iaa.geometric.ShearY(shear=(-20, 20)), iaa.Rotate((-25, 25))])
 
@@ -108,7 +109,10 @@ class AWEDataset(object):
 
 
 def load_img(path, image_size, mask=True, aug=True):
-    image = cv2.imread(path)
+    image = skimage.io.imread(path)
+    if len(image.shape) == 2:
+        image = np.stack([image, image, image], axis=2)
+    image = image[:, :, 0:3]
     if not mask:
         return cv2.resize(image, dsize=(image_size, image_size))
     w, h, c = image.shape

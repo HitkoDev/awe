@@ -37,6 +37,7 @@ from datetime import datetime
 
 import cv2
 import numpy as np
+import skimage.io
 import tensorflow as tf
 from six.moves import xrange  # @UnresolvedImport
 from tensorflow.python.ops import data_flow_ops
@@ -273,7 +274,10 @@ def train(args, sess, dataset, epoch, image_paths_placeholder, labels_placeholde
         for p in image_paths_array:
             imgs = []
             for path in p:
-                image = cv2.imread(path)
+                image = np.array(skimage.io.imread(path))
+                if len(image.shape) == 2:
+                    image = np.stack([image, image, image], axis=2)
+                image = image[:, :, 0:3]
                 w, h, c = image.shape
                 r = math.ceil((w ** 2 + h ** 2) ** 0.5)
                 pw = math.ceil((r - w) / 2)
@@ -466,7 +470,10 @@ def evaluate(sess, image_paths, embeddings, labels_batch, image_paths_placeholde
     for p in image_paths_array:
         imgs = []
         for path in p:
-            image = cv2.imread(path)
+            image = np.array(skimage.io.imread(path))
+            if len(image.shape) == 2:
+                image = np.stack([image, image, image], axis=2)
+            image = image[:, :, 0:3]
             out = cv2.resize(image, dsize=(args.image_size, args.image_size))
             imgs.append(out)
         images_array.append(imgs)
